@@ -1,5 +1,5 @@
 {{setvar::random_event_trigger::
-是，参考<random_event_trigger_protocol>}}
+随机事件触发?是，参考<random_event_trigger_protocol>}}
 
 <random_event_trigger_protocol>
 # 随机事件触发总协议
