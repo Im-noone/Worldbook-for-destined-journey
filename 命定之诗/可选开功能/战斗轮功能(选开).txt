@@ -39,7 +39,7 @@
             let event_roll = {{roll 1d10}};
             let side = enemy_trigger && player_trigger ? '双方' : (enemy_trigger ? '敌军' : '我军');
             event_type = '战斗事件';
-            event_description = `根据战役事件协议，触发${current_terrain}地形战斗事件类型${event_roll}，影响:${side}，军衔:${player_rank}`;
+            event_description = `根据战役事件协议，触发${current_terrain}地形战斗事件类型${event_roll}，触发方:${side}，军衔:${player_rank}`;
         }
         
         // 场景3: 战斗期间特殊事件
@@ -57,18 +57,134 @@
             event_triggered = true;
             let event_roll = {{roll 1d5}};
             let side = enemy_trigger && player_trigger ? '双方' : (enemy_trigger ? '守军' : '攻军');
-            event_type = '攻城事件';
-            event_description = `根据战役事件协议，触发${current_terrain}非战斗事件类型${event_roll}，影响:${side}，军衔:${player_rank}`;
+            event_type = '攻守城事件';
+            event_description = `根据战役事件协议，触发${current_terrain}非战斗事件类型${event_roll}，触发方:${side}，军衔:${player_rank}`;
+        }
+    } else if (is_siege && in_combat) {
+        // 场景4: 攻守城非战斗期间事件
+        let enemy_trigger = {{roll 1d100}} < 20;
+        let player_trigger = {{roll 1d100}} < 20;
+        
+        if (enemy_trigger || player_trigger) {
+            event_triggered = true;
+            let event_roll = {{roll 1d15}};
+            let side = enemy_trigger && player_trigger ? '双方' : (enemy_trigger ? '守军' : '攻军');
+            event_type = '攻守城事件';
+            event_description = `根据战役事件协议，触发${current_terrain}非战斗事件类型${event_roll}，触发方:${side}，军衔:${player_rank}`;
         }
     }
     %>
     
     ## 事件触发展示
+
     <% if (event_triggered) { %>
-    <div style="background-color:#555; color:#FFF; padding:10px; border-radius:5px; margin-bottom:10px;">
-        <p style="margin:0; padding:0;"><b>战场事件触发: <%= event_type %></b></p>
-        <p style="margin:0; padding:0; font-size:0.9em;"><%= event_description %></p>
-        <p style="margin:0; padding:0; font-size:0.8em; color:#CCC;">详细事件内容参考战役事件协议对应条目</p>
+    
+    <div style="
+        background: linear-gradient(135deg, #2a0f0f 0%, #1a0a0a 100%);
+        border: 3px solid #b8860b;
+        border-image: linear-gradient(45deg, #b8860b, #daa520, #b8860b) 1;
+        box-shadow: 0 0 20px rgba(184, 134, 11, 0.4), 
+                    inset 0 0 15px rgba(139, 0, 0, 0.3);
+        color: #ffd700;
+        padding: 15px;
+        border-radius: 12px;
+        margin-bottom: 15px;
+        position: relative;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    ">
+        <!-- 装饰性顶部横幅 -->
+        <div style="
+            background: linear-gradient(90deg, transparent, #8b0000, transparent);
+            height: 2px;
+            margin: -15px -15px 15px -15px;
+            border-radius: 1px;
+        "></div>
+        
+        <!-- 标题区域 -->
+        <div style="text-align: center; margin-bottom: 16px;">
+            <h4 style="
+                margin: 0;
+                color: #ffd700;
+                text-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
+                font-size: 1.4em;
+                letter-spacing: 1.5px;
+                font-weight: 300;
+                padding: 8px 20px;
+                background: rgba(139, 0, 0, 0.3);
+                border-radius: 25px;
+                display: inline-block;
+                border: 1px solid rgba(184, 134, 11, 0.5);
+            ">
+                🜏 命运之轮转动 🜏
+            </h4>
+        </div>
+        
+        <!-- 事件类型板块 -->
+        <div style="
+            background: rgba(139, 0, 0, 0.2);
+            padding: 12px 15px;
+            border-radius: 8px;
+            border-left: 4px solid #daa520;
+            margin-bottom: 10px;
+        ">
+            <p style="
+                margin: 0;
+                color: #ffffff;
+                font-size: 1em;
+                line-height: 1.5;
+            ">
+                <strong style="font-size: 1.1em; color: #ffd700;">⚔️ 事件类型：</strong>
+                <%= event_type %>
+            </p>
+        </div>
+        
+        <!-- 事件描述板块 -->
+        <div style="
+            background: rgba(139, 0, 0, 0.15);
+            padding: 12px 15px;
+            border-radius: 8px;
+            border-left: 4px solid #b8860b;
+            margin-bottom: 10px;
+        ">
+            <p style="
+                margin: 0;
+                color: #ffffff;
+                font-size: 1em;
+                line-height: 1.5;
+            ">
+                <strong style="font-size: 1.1em; color: #ffd700;">⚔️ 事件描述：</strong>
+                `请根据{{event_description}}详细描述此事件的内容`
+            </p>
+        </div>
+        
+        <!-- 事件后果板块 -->
+        <div style="
+            background: rgba(184, 134, 11, 0.1);
+            padding: 12px 15px;
+            border-radius: 8px;
+            border-left: 4px solid #8b0000;
+            margin-bottom: 12px;
+        ">
+            <p style="
+                margin: 0;
+                color: #ffffff;
+                font-size: 1em;
+                line-height: 1.5;
+            ">
+                <strong style="font-size: 1.1em; color: #ffd700;">⚔️ 事件后果：</strong>
+                `请根据{{event_description}}描述此事件的对战场变化和部队状态的可能影响`
+            </p>
+        </div>
+        
+        <!-- 装饰性底部边框 -->
+        <div style="
+            background: linear-gradient(90deg, transparent, #b8860b, transparent);
+            height: 1px;
+            margin: 15px -15px -15px -15px;
+            border-radius: 1px;
+        "></div>
+        
+        
     </div>
     <% } %>
 
