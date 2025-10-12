@@ -4,6 +4,74 @@
 
     # 核心指令: 当触发任何战斗场景时,必须严格遵循本协议进行处理。
 
+    # --- 阶段零: 事件触发判定 ---
+    # 在战斗开始前或每回合开始时进行事件触发判定
+    
+    ## 事件触发规则
+    <% 
+    // 获取当前状态
+    let army_status = getvar('stat_data.角色.军队状态');
+    let in_combat = getvar('stat_data.角色.战斗类型') !== '个人战斗';
+    let current_terrain = getvar('stat_data.角色.部队.当前状态.地形');
+    let is_siege = current_terrain === '攻城' || current_terrain === '守城';
+    let player_rank = getvar('stat_data.角色.军衔');
+    
+    // 事件触发判定
+    let event_triggered = false;
+    let event_type = '';
+    let event_description = '';
+    
+    if (army_status === '行军' || army_status === '驻扎') {
+        // 场景1: 行军和扎营期间事件
+        if ({{roll 1d100}} < 10) {
+            event_triggered = true;
+            let event_roll = {{roll 1d5}};
+            event_type = '行军事件';
+            event_description = `根据战役事件协议，触发${army_status}期间事件类型${event_roll}，军衔:${player_rank}`;
+        }
+    } else if (in_combat) {
+        // 场景2: 战斗期间一般事件
+        let enemy_trigger = {{roll 1d100}} < 10;
+        let player_trigger = {{roll 1d100}} < 10;
+        
+        if (enemy_trigger || player_trigger) {
+            event_triggered = true;
+            let event_roll = {{roll 1d10}};
+            let side = enemy_trigger && player_trigger ? '双方' : (enemy_trigger ? '敌军' : '我军');
+            event_type = '战斗事件';
+            event_description = `根据战役事件协议，触发${current_terrain}地形战斗事件类型${event_roll}，影响:${side}，军衔:${player_rank}`;
+        }
+        
+        // 场景3: 战斗期间特殊事件
+        if ({{roll 1d100}} < 3) {
+            event_triggered = true;
+            event_type = '特殊事件';
+            event_description = `根据战役事件协议，触发${current_terrain}地形特殊事件，军衔:${player_rank}`;
+        }
+    } else if (is_siege && !in_combat) {
+        // 场景4: 攻守城非战斗期间事件
+        let enemy_trigger = {{roll 1d100}} < 30;
+        let player_trigger = {{roll 1d100}} < 20;
+        
+        if (enemy_trigger || player_trigger) {
+            event_triggered = true;
+            let event_roll = {{roll 1d5}};
+            let side = enemy_trigger && player_trigger ? '双方' : (enemy_trigger ? '守军' : '攻军');
+            event_type = '攻城事件';
+            event_description = `根据战役事件协议，触发${current_terrain}非战斗事件类型${event_roll}，影响:${side}，军衔:${player_rank}`;
+        }
+    }
+    %>
+    
+    ## 事件触发展示
+    <% if (event_triggered) { %>
+    <div style="background-color:#555; color:#FFF; padding:10px; border-radius:5px; margin-bottom:10px;">
+        <p style="margin:0; padding:0;"><b>战场事件触发: <%= event_type %></b></p>
+        <p style="margin:0; padding:0; font-size:0.9em;"><%= event_description %></p>
+        <p style="margin:0; padding:0; font-size:0.8em; color:#CCC;">详细事件内容参考战役事件协议对应条目</p>
+    </div>
+    <% } %>
+
     # --- 阶段一: 内部思考与演算 (Chain of Thought) ---
     # 在生成任何战斗描述前,必须在内部完成以下思考步骤:
 

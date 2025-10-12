@@ -1,3 +1,5 @@
 <% if (getvar('stat_data.角色.在军队中') == true) { %>
     active_battlefield_event_protocol
 <%_ } _%>
+
+// 降token用，没有部队的情况下不进行部队相关
