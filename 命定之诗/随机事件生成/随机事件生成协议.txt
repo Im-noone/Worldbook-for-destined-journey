@@ -1,3 +1,6 @@
+{{setvar::shijianlian::
+是，参考<random_event_trigger_protocol>}}
+
 <random_event_trigger_protocol>
 # 随机事件触发总协议
 # 本协议统一管理游戏中各类随机事件的触发逻辑
