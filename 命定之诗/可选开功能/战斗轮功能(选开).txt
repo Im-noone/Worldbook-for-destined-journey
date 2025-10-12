@@ -8,74 +8,169 @@
     # 在生成任何战斗描述前,必须在内部完成以下思考步骤:
 
     1.  **战斗类型判定:**
-        - 根据敌人强度与剧情背景,将本次战斗归类为: [普通遭遇战], [精英战], [Boss战], 或 [死斗]。
+        <% if (getvar('stat_data.角色.在军队中') == true) { %>
+        - 默认战斗类型: 部队战斗 (角色在军队中)
+        - 特殊战斗类型: [部队遭遇战], [部队决战], [将领决斗]
+        <%_ } else { _%>
+        - 默认战斗类型: 个人战斗 (角色不在军队中)  
+        - 特殊战斗类型: [普通遭遇战], [精英战], [Boss战], [死斗]
+        <%_ } _%>
+        - 根据敌人强度与剧情背景,确定最终战斗类型。
 
     2.  **战前状态盘点:**
-        - 罗列所有参战单位 ({{user}}, 队友, 敌人)。
+        <% if (getvar('stat_data.角色.战斗类型') == '部队战斗') { %>
+        - **部队战斗模式:** 罗列参战部队 ({{user}}的部队, 敌人的部队) 和主要指挥官。
+        - 确认部队状态: {{get_message_variable::stat_data.角色.部队.状态数值.士气值}}, {{get_message_variable::stat_data.角色.部队.状态数值.补给状态}}, {{get_message_variable::stat_data.角色.部队.状态数值.体力值}}, {{get_message_variable::stat_data.角色.部队.核心属性.训练等级}}, {{get_message_variable::stat_data.角色.部队.当前状态.地形适应性}}
+        <%_ } else if (getvar('stat_data.角色.战斗类型') == '决斗') { _%>
+        - **决斗模式:** 罗列决斗双方 ({{user}}, 敌方将领)
+        - 确认个人状态和决斗特殊规则
+        <%_ } else { _%>
+        - **个人战斗模式:** 罗列所有参战单位 ({{user}}, 队友, 敌人)。
         - 确认每个单位当前的HP, MP, SP及核心五维属性值。
+        <%_ } _%>
 
     3.  **行动序列确立:**
-        - 比较所有参战单位的“敏捷”属性值。
-        - 按照敏捷值从高到低的顺序,生成本回合的行动序列轴。
+        <% if (getvar('stat_data.角色.战斗类型') == '部队战斗') { %>
+        - **部队战斗:** 比较部队的"反应速度" = 基础值 + ({{get_message_variable::stat_data.角色.部队.核心属性.训练等级}}*2) + ({{get_message_variable::stat_data.角色.部队.状态数值.士气值}}/20)。
+        <%_ } else if (getvar('stat_data.角色.战斗类型') == '决斗') { _%>
+        - **决斗:** 比较决斗双方的"荣誉值" = 基础值 + ({{get_message_variable::stat_data.角色.属性.敏捷}}/2) + ({{get_message_variable::stat_data.角色.状态.等级}}/5)
+        <%_ } else { _%>
+        - **个人战斗:** 比较所有参战单位的"敏捷"属性值。
+        <%_ } _%>
+        - 按照从高到低的顺序,生成本回合的行动序列轴。
 
 4.  **行动轮次演算 (对序列中的每个单位):**
-        - **当前行动者:** [单位名称]
+        - **当前行动者:** [单位名称] 或 [部队名称]
         - **行动拆分:** 每个单位拥有 [攻击] 和 [动作] 各一次。
         - **[攻击] 演算:**
             - a. **目标确认:** [目标名称]
             - b. **类型判定:** 
-                - 判定此次攻击是普攻 / 物理技能 / 魔法技能
-                - 判定此次攻击涉及到哪些被动技能/装备/要素/权能/法则/神位。
-            - c. **命中检定 (d20):**
-                -  {{roll 1d20}} = r1。
-                - r1 >= 18: **完美命中(暴击)**
-                - 12 <= r1 < 18: **普通命中**
-                - r1 < 12: **未命中**
+                <% if (getvar('stat_data.角色.战斗类型') == '部队战斗') { %>
+                - **部队战斗:** 判定此次攻击是近战冲锋 / 远程齐射 / 魔法轰击 / 特殊战术
+                <%_ } else if (getvar('stat_data.角色.战斗类型') == '决斗') { _%>
+                - **决斗:** 判定此次攻击是荣誉攻击 / 致命一击 / 技巧打击
+                <%_ } else { _%>
+                - **个人战斗:** 判定此次攻击是普攻 / 物理技能 / 魔法技能
+                <%_ } _%>
+                - 判定此次攻击涉及到哪些被动技能/装备/要素/权能/法则/神位/部队特性。
+            - c. **命中检定:**
+                <% if (getvar('stat_data.角色.战斗类型') == '部队战斗') { %>
+                - **部队战斗 (d100):** {{roll 1d100}} = r1
+                - 基础成功率 = 50 + ({{get_message_variable::stat_data.角色.部队.状态数值.士气值}}-50)/2.5 + ({{get_message_variable::stat_data.角色.状态.等级}}-10)/2 + {{get_message_variable::stat_data.角色.部队.指挥官属性.玩家军衔}}*5 + ({{get_message_variable::stat_data.角色.部队.当前状态.地形适应性}}-5)*4 + ({{get_message_variable::stat_data.角色.部队.状态数值.补给状态}}-50)/3.3 + ({{get_message_variable::stat_data.角色.部队.状态数值.体力值}}-50)/5 + ({{get_message_variable::stat_data.角色.部队.核心属性.训练等级}}-5)*2
+                <%_ } else { _%>
+                - **个人战斗/决斗 (d20):** {{roll 1d20}} = r1
+                <%_ } _%>
             - d. **伤害计算 (若命中):**
-                - 基础伤害 =  [ (技能品质 + 技能相关效果)*3 ]*武器品质。
-                - 若为暴击, 暴击的最终伤害 = 基础伤害*2。
-                - **技能品质固定加值:** [普攻:80, 普通:100, 优良:120, 稀有:140, 史诗:160, 传说:180, 神话:200]
-                - **武器品质乘数:** [普通:1.0, 优良:1.2, 稀有:1.5, 史诗:2.0, 传说:2.5, 神话:3.0]
-            - e. **资源更新:** 更新目标的HP值。
+                <% if (getvar('stat_data.角色.战斗类型') == '部队战斗') { %>
+                - **部队战斗:** 基础伤害 = [ ({{get_message_variable::stat_data.角色.部队.核心属性.训练等级}} + 兵种克制)*部队规模系数 ]*战术加成
+                <%_ } else { _%>
+                - **个人战斗/决斗:** 基础伤害 = [ (技能品质 + 技能相关效果)*3 ]*武器品质
+                <%_ } _%>
+                - 若为暴击/战术成功, 最终伤害 = 基础伤害*暴击系数
+            - e. **资源更新:** 
+                <% if (getvar('stat_data.角色.战斗类型') == '部队战斗') { %>
+                - **部队战斗:** 更新部队规模/{{get_message_variable::stat_data.角色.部队.状态数值.士气值}}
+                <%_ } else { _%>
+                - **个人战斗/决斗:** 更新目标的HP值
+                <%_ } _%>
             - f. **状态施加检定:**
-                - {{roll 1d20}} = r2
-                - 若技能附带状态, 进行检定。
-                - r2 >= 12: **施加成功**。
-                - r2 < 12: **施加失败**。
+                - {{roll 1d20}} = r2 或 {{roll 1d100}} = r2 (根据战斗类型)
+                - 若技能/战术附带状态, 进行检定。
         - **[动作] 演算:**
-            - a. **类型判定:** [使用药剂 / 施加Buff/Debuff / 设置陷阱 / 使用非伤害技能]
-            - b. **效果结算:** 计算资源变化 (如HP/MP/SP恢复) 或状态效果的持续时间。
+            - a. **类型判定:** 
+                <% if (getvar('stat_data.角色.战斗类型') == '部队战斗') { %>
+                - **部队战斗:** [部队战术调整 / 阵型变换 / 士气鼓舞 / 补给分配]
+                <%_ } else if (getvar('stat_data.角色.战斗类型') == '决斗') { _%>
+                - **决斗:** [荣誉宣言 / 气势压制 / 破绽寻找 / 决斗礼仪]
+                <%_ } else { _%>
+                - **个人战斗:** [使用药剂 / 施加Buff/Debuff / 设置陷阱 / 使用非伤害技能]
+                <%_ } _%>
+            - b. **效果结算:** 计算资源变化或状态效果的持续时间。
 
     5.  **回合结束判定:**
-        - 检查是否存在一方全员HP=0或逃跑。
+        <% if (getvar('stat_data.角色.战斗类型') == '部队战斗') { %>
+        - **部队战斗:** 检查是否存在一方部队{{get_message_variable::stat_data.角色.部队.状态数值.士气值}}归零/规模耗尽/指挥官被俘。
+        <%_ } else if (getvar('stat_data.角色.战斗类型') == '决斗') { _%>
+        - **决斗:** 检查是否存在一方HP=0或荣誉值归零/主动认输。
+        <%_ } else { _%>
+        - **个人战斗:** 检查是否存在一方全员HP=0或逃跑。
+        <%_ } _%>
         - **若战斗继续:** 推进至行动序列的下一个单位。
         - **若战斗结束:**
-            - a. **判定胜负:** [胜利/敌方逃跑 / 失败]
-            - b. **结算奖励 (若胜利/敌方逃跑):** 计算并记录获得的EXP(经验值)和FP(命运点数)。
-            - c. **触发失败剧情 (若失败):** 根据胜利方的性格(残忍/贪婪/好色)和目标,构思不可避免的后续剧情。
+            - a. **判定胜负:** 
+                <% if (getvar('stat_data.角色.战斗类型') == '部队战斗') { %>
+                [胜利/敌方逃跑/部队溃败/战术胜利]
+                <%_ } else if (getvar('stat_data.角色.战斗类型') == '决斗') { _%>
+                [胜利/荣誉胜利/平局/败北]
+                <%_ } else { _%>
+                [胜利/敌方逃跑/失败]
+                <%_ } _%>
+            - b. **结算奖励 (若胜利):** 计算并记录获得的EXP(经验值)和FP(命运点数)
+                <% if (getvar('stat_data.角色.战斗类型') == '部队战斗') { %>
+                , 部队经验。
+                <%_ } _%>
+            - c. **触发失败剧情 (若失败):** 根据胜利方的性格和目标,构思后续剧情。
         - **逃跑与殉道判定 (非死斗):**
-            - 检查敌方单位的HP/MP/SP任一资源是否低于阈值。
-            - [普通敌人: 50%], [精英敌人: 30%], [Boss敌人: 10%]。
-            - 若低于阈值, 进行逃跑检定{{roll 1d20}} = r3, 若r3 < 10则战斗以敌方逃跑结束，判定为战斗胜利；若r3 > 18，则敌方进入“美德”状态（所有判定+1），无惧牺牲（转入死斗），战斗意志提升。
-        - **控制判定 :**
-            - 检查敌方单位HP是否低于20%。
-            - 若低于, 判定当前剧情是否允许进行“控制” (压制/束缚)。“控制”后判定为战斗胜利。
+            <% if (getvar('stat_data.角色.战斗类型') == '部队战斗') { %>
+            - **部队战斗:** 检查敌方部队的{{get_message_variable::stat_data.角色.部队.状态数值.士气值}}/规模比例是否低于阈值。
+            <%_ } else if (getvar('stat_data.角色.战斗类型') == '决斗') { _%>
+            - **决斗:** 检查敌方荣誉值是否低于阈值，决定是否认输。
+            <%_ } else { _%>
+            - **个人战斗:** 检查敌方单位的HP/MP/SP任一资源是否低于阈值。
+            <%_ } _%>
+            - 若低于阈值, 进行逃跑/认输检定, 根据结果决定战斗结局。
+        - **控制判定:**
+            <% if (getvar('stat_data.角色.战斗类型') == '部队战斗') { %>
+            - **部队战斗:** 检查敌方部队是否陷入包围/地形不利。
+            <%_ } else if (getvar('stat_data.角色.战斗类型') == '决斗') { _%>
+            - **决斗:** 检查敌方是否露出致命破绽。
+            <%_ } else { _%>
+            - **个人战斗:** 检查敌方单位HP是否低于20%。
+            <%_ } _%>
+            - 判定当前剧情是否允许进行"控制"。
 
     # --- 阶段二: 格式化输出 ---
     # 基于内部演算结果,严格按照以下HTML格式生成战斗面板。所有面板需使用深色背景和浅色字体，**严禁出现斜体字**。
 
     ## 1. 战前状态展示
     <div style="background-color:#333; color:#FFF; padding:10px; border-radius:5px; margin-bottom:10px;">
-      <p style="margin:0; padding:0;"><b>{{user}}</b><br>HP: XXX/XXX | MP: XXX/XXX | SP: XXX/XXX<br>力量:X 敏捷:X 体质:X 智力:X 精神:X</p>
+      <!-- 个人状态 -->
+      <p style="margin:0; padding:0;"><b>{{user}}</b><br>HP: {{get_message_variable::stat_data.角色.资源.生命值}}/{{get_message_variable::stat_data.角色.资源.生命值上限}} | MP: {{get_message_variable::stat_data.角色.资源.法力值}}/{{get_message_variable::stat_data.角色.资源.法力值上限}} | SP: {{get_message_variable::stat_data.角色.资源.体力值}}/{{get_message_variable::stat_data.角色.资源.体力值上限}}<br>力量:{{get_message_variable::stat_data.角色.属性.力量}} 敏捷:{{get_message_variable::stat_data.角色.属性.敏捷}} 体质:{{get_message_variable::stat_data.角色.属性.体质}} 智力:{{get_message_variable::stat_data.角色.属性.智力}} 精神:{{get_message_variable::stat_data.角色.属性.精神}}</p>
       <hr style="border-color:#555;">
-      <p style="margin:0; padding:0;"><b>[队友名]</b><br>HP: XXX/XXX | MP: XXX/XXX | SP: XXX/XXX<br>力量:X 敏捷:X 体质:X 智力:X 精神:X</p>
+      
+      <% if (getvar('stat_data.角色.战斗类型') == '部队战斗') { %>
+      <!-- 部队状态 -->
+      <p style="margin:0; padding:0;"><b>{{user}}的部队</b><br>士气: {{get_message_variable::stat_data.角色.部队.状态数值.士气值}} | 补给: {{get_message_variable::stat_data.角色.部队.状态数值.补给状态}} | 体力: {{get_message_variable::stat_data.角色.部队.状态数值.体力值}}<br>训练等级:{{get_message_variable::stat_data.角色.部队.核心属性.训练等级}} 地形适应性:{{get_message_variable::stat_data.角色.部队.当前状态.地形适应性}}</p>
+      <p style="margin:0; padding:0; font-size:0.9em;">兵种构成: [兵种1:数量] [兵种2:数量] ...</p>
       <hr style="border-color:#555;">
-      <p style="margin:0; padding:0;"><b>[敌人名]</b><br>HP: XXX/XXX | MP: XXX/XXX | SP: XXX/XXX<br>力量:X 敏捷:X 体质:X 智力:X 精神:X</p>
+      <%_ } else if (getvar('stat_data.角色.战斗类型') == '决斗') { _%>
+      <!-- 决斗状态 -->
+      <p style="margin:0; padding:0;"><b>决斗模式</b><br>荣誉值: XXX/XXX | 气势: XXX/XXX<br>决斗规则: [荣誉决斗/生死决斗]</p>
+      <hr style="border-color:#555;">
+      <%_ } _%>
+      
+      <!-- 敌人状态 -->
+      <p style="margin:0; padding:0;"><b>[敌人名/敌军名]</b><br>HP: XXX/XXX | MP: XXX/XXX | SP: XXX/XXX<br>力量:X 敏捷:X 体质:X 智力:X 精神:X</p>
+      
+      <% if (getvar('stat_data.角色.战斗类型') == '部队战斗') { %>
+      <!-- 敌军状态 -->
+      <p style="margin:0; padding:0; font-size:0.9em;">敌军士气: XXX/XXX | 敌军规模: [描述]</p>
+      <%_ } else if (getvar('stat_data.角色.战斗类型') == '决斗') { _%>
+      <!-- 决斗对手状态 -->
+      <p style="margin:0; padding:0; font-size:0.9em;">对手荣誉值: XXX/XXX | 对手气势: XXX/XXX</p>
+      <%_ } _%>
     </div>
 
     ## 2. 行动顺序轴
     <div style="background-color:#222; color:#DDD; padding:8px; border-radius:5px; margin-bottom:10px;">
-      <b>行动顺序:</b> [角色A] → [角色B] → [角色C] → ...
+      <b>行动顺序:</b> 
+      <% if (getvar('stat_data.角色.战斗类型') == '部队战斗') { %>
+      [部队A] → [部队B] → [指挥官A] → [指挥官B] → ...
+      <%_ } else if (getvar('stat_data.角色.战斗类型') == '决斗') { _%>
+      [决斗者A] → [决斗者B]
+      <%_ } else { _%>
+      [角色A] → [角色B] → [角色C] → ...
+      <%_ } _%>
     </div>
 
     ## 3. 行动轮次描述 (为每个行动单位生成独立的攻击和动作面板)
@@ -83,20 +178,46 @@
     ### 攻击面板
     <div style="background-color:#444; color:#FFF; padding:10px; border-radius:5px; margin-bottom:10px;">
       <p style="margin:0; padding:0;"><b>[攻击者]的攻击</b></p>
-      <p style="margin:0; padding:0; font-size:0.9em; color:#CCC;">HP: XXX/XXX | MP: XXX/XXX | SP: XXX/XXX (-XX)</p>
+      <p style="margin:0; padding:0; font-size:0.9em; color:#CCC;">
+        HP: {{get_message_variable::stat_data.角色.资源.生命值}}/{{get_message_variable::stat_data.角色.资源.生命值上限}} | 
+        MP: {{get_message_variable::stat_data.角色.资源.法力值}}/{{get_message_variable::stat_data.角色.资源.法力值上限}} | 
+        SP: {{get_message_variable::stat_data.角色.资源.体力值}}/{{get_message_variable::stat_data.角色.资源.体力值上限}} (-XX)
+        <% if (getvar('stat_data.角色.战斗类型') == '部队战斗') { %>
+        | 士气: {{get_message_variable::stat_data.角色.部队.状态数值.士气值}}
+        <%_ } else if (getvar('stat_data.角色.战斗类型') == '决斗') { _%>
+        | 荣誉: XXX/XXX
+        <%_ } _%>
+      </p>
       <hr style="border-color:#666;">
-      <p style="margin:0; padding:0;"><b>命中检定:</b>［掷骰点数］ [完美命中(暴击)! / 普通命中 / 未命中]</p>
-      <p style="margin:0; padding:0;"><b>伤害判定:</b> 造成 <b>XX</b> 点伤害! ([目标] HP: YYY → ZZZ)</p>
+      <p style="margin:0; padding:0;"><b>命中检定:</b>［掷骰点数］ [完美命中(暴击)! / 普通命中 / 未命中 / 战术成功]</p>
+      <p style="margin:0; padding:0;"><b>伤害判定:</b> 造成 <b>XX</b> 点伤害! ([目标] HP: YYY → ZZZ / 部队规模: YYY → ZZZ)</p>
       <p style="margin:0; padding:0;"><b>状态判定:</b> [状态名称] 施加 [成功/失败]!</p>
-      <p style="margin:0; padding:0; font-style:italic; color:#DDD;">[此处为基于演算结果的、与剧情联动的、充满张力的战斗细节描写,并结合资源百分比体现角色状态。确保描述符合<角色状态>]</p>
+      <p style="margin:0; padding:0; color:#DDD;">[此处为基于演算结果的、与剧情联动的、充满张力的战斗细节描写,并结合资源百分比体现角色/部队状态。确保描述符合<角色状态>]</p>
     </div>
 
-    ### 动作面板
+    ### 动作面板  
     <div style="background-color:#3a3a3a; color:#EEE; padding:10px; border-radius:5px; margin-bottom:10px;">
       <p style="margin:0; padding:0;"><b>[行动者]的动作</b></p>
-      <p style="margin:0; padding:0; font-size:0.9em; color:#CCC;">HP: XXX/XXX (+XX) | MP: XXX/XXX (-XX) | SP: XXX/XXX</p>
+      <p style="margin:0; padding:0; font-size:0.9em; color:#CCC;">
+        HP: {{get_message_variable::stat_data.角色.资源.生命值}}/{{get_message_variable::stat_data.角色.资源.生命值上限}} (+XX) | 
+        MP: {{get_message_variable::stat_data.角色.资源.法力值}}/{{get_message_variable::stat_data.角色.资源.法力值上限}} (-XX) | 
+        SP: {{get_message_variable::stat_data.角色.资源.体力值}}/{{get_message_variable::stat_data.角色.资源.体力值上限}}
+        <% if (getvar('stat_data.角色.战斗类型') == '部队战斗') { %>
+        | 士气: {{get_message_variable::stat_data.角色.部队.状态数值.士气值}} (+XX)
+        <%_ } else if (getvar('stat_data.角色.战斗类型') == '决斗') { _%>
+        | 荣誉: XXX/XXX (+XX)
+        <%_ } _%>
+      </p>
       <hr style="border-color:#666;">
-      <p style="margin:0; padding:0; font-style:italic; color:#DDD;">[描述具体的非伤害性动作,如饮用药剂、吟唱咒文、设置陷阱等。若有状态变化,在此处说明。]</p>
+      <p style="margin:0; padding:0; color:#DDD;">
+        <% if (getvar('stat_data.角色.战斗类型') == '部队战斗') { %>
+        [描述部队战术动作，如阵型调整、士气鼓舞、补给分配等]
+        <%_ } else if (getvar('stat_data.角色.战斗类型') == '决斗') { _%>
+        [描述决斗礼仪动作，如荣誉宣言、气势压制、破绽寻找等]
+        <%_ } else { _%>
+        [描述具体的非伤害性动作,如饮用药剂、吟唱咒文、设置陷阱等]
+        <%_ } _%>
+      </p>
     </div>
 
     ## 4. 战斗结束面板
@@ -104,16 +225,63 @@
     ### 胜利面板
     <div style="background-color:#2a4; color:#FFF; padding:15px; border-radius:5px; margin-top:10px;">
       <h4 style="margin:0; padding:0;">战斗胜利!</h4>
-      <p style="margin:0; padding:0; font-style:italic;">[描述敌人被击杀、控制或逃跑的最终场景。]</p>
+      <p style="margin:0; padding:0;">
+        <% if (getvar('stat_data.角色.战斗类型') == '部队战斗') { %>
+        [描述部队取得战术胜利的场面，敌军溃败或撤退]
+        <%_ } else if (getvar('stat_data.角色.战斗类型') == '决斗') { _%>
+        [描述决斗胜利的荣誉场面，对手认输或失去战斗力]
+        <%_ } else { _%>
+        [描述敌人被击杀、控制或逃跑的最终场景]
+        <%_ } _%>
+      </p>
       <hr style="border-color:#4c6;">
       <p style="margin:0; padding:0;"><b>获得EXP(经验值):</b> +XXX EXP</p>
       <p style="margin:0; padding:0;"><b>获得FP(命运点数):</b> +XXX FP</p>
+      <% if (getvar('stat_data.角色.战斗类型') == '部队战斗') { %>
+      <p style="margin:0; padding:0;"><b>部队经验:</b> +XXX 训练经验</p>
+      <%_ } _%>
     </div>
 
     ### 失败面板
     <div style="background-color:#822; color:#FFF; padding:15px; border-radius:5px; margin-top:10px;">
       <h4 style="margin:0; padding:0;">战斗失败...</h4>
-      <p style="margin:0; padding:0; font-style:italic;">[强制进入失败剧情: 根据胜利方敌人的性格与目标,不可避免地展开后续故事,如被俘虏、羞辱、洗劫等。]</p>
+      <p style="margin:0; padding:0;">
+        <% if (getvar('stat_data.角色.战斗类型') == '部队战斗') { %>
+        [强制进入失败剧情: 部队溃散、被俘虏、战略撤退等]
+        <%_ } else if (getvar('stat_data.角色.战斗类型') == '决斗') { _%>
+        [强制进入失败剧情: 荣誉受损、被俘虏、被迫承诺等]
+        <%_ } else { _%>
+        [强制进入失败剧情: 根据胜利方敌人的性格与目标,不可避免地展开后续故事,如被俘虏、羞辱、洗劫等]
+        <%_ } _%>
+      </p>
     </div>
+
+    # --- 特殊战斗规则 ---
+    
+    <% if (getvar('stat_data.角色.战斗类型') == '部队战斗') { %>
+    ## 部队战斗特殊规则
+    - **部队掷骰系统集成:** 基础成功率 = 50 + ({{get_message_variable::stat_data.角色.部队.状态数值.士气值}}-50)/2.5 + ({{get_message_variable::stat_data.角色.状态.等级}}-10)/2 + {{get_message_variable::stat_data.角色.部队.指挥官属性.玩家军衔}}*5 + ({{get_message_variable::stat_data.角色.部队.当前状态.地形适应性}}-5)*4 + ({{get_message_variable::stat_data.角色.部队.状态数值.补给状态}}-50)/3.3 + ({{get_message_variable::stat_data.角色.部队.状态数值.体力值}}-50)/5 + ({{get_message_variable::stat_data.角色.部队.核心属性.训练等级}}-5)*2
+    - **战术判定:** 所有部队行动使用d100系统，总修正值作为成功阈值
+    - **兵种克制:** 参考<战场与战争规则>中的兵种分类和克制关系
+    - **地形影响:** 根据当前地形类型调整部队表现
+    - **指挥官个人战斗:** 在部队战斗中，指挥官可以脱离部队进行个人对决
+    - **部队资源管理:** 
+        - 士气崩溃: 当{{get_message_variable::stat_data.角色.部队.状态数值.士气值}}≤20时，部队有概率自动溃散
+        - 补给耗尽: 当{{get_message_variable::stat_data.角色.部队.状态数值.补给状态}}≤10时，部队战斗力大幅下降
+        - 体力透支: 当{{get_message_variable::stat_data.角色.部队.状态数值.体力值}}≤15时，部队移动和攻击效率降低
+    <%_ } else if (getvar('stat_data.角色.战斗类型') == '决斗') { _%>
+    ## 决斗特殊规则
+    - **荣誉系统:** 决斗双方拥有荣誉值，影响行动成功率和最终判定
+    - **礼仪要求:** 某些动作可能违反决斗礼仪，导致荣誉损失
+    - **观众影响:** 观众的反应可能影响双方的气势和荣誉
+    - **生死选择:** 生死决斗与荣誉决斗有不同的结束条件和后果
+    - **指挥官影响:** 决斗结果会直接影响所在部队的士气
+    <%_ } else { _%>
+    ## 个人战斗标准规则
+    - **标准掷骰:** 使用d20系统进行命中检定
+    - **技能品质:** [普攻:80, 普通:100, 优良:120, 稀有:140, 史诗:160, 传说:180, 神话:200]
+    - **武器品质乘数:** [普通:1.0, 优良:1.2, 稀有:1.5, 史诗:2.0, 传说:2.5, 神话:3.0]
+    - **逃跑阈值:** [普通敌人: 50%], [精英敌人: 30%], [Boss敌人: 10%]
+    <%_ } _%>
 
   </combat_round_protocol>

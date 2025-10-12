@@ -1,0 +1,1438 @@
+<battlefield_event_protocol>
+core_rules:
+  trigger_mechanism: "在战斗中的关键时刻进行`roll:1d10`判定。事件可能发生在任何战斗阶段，并可能改变当前阶段。"
+  design_philosophy: "通过动态的战场事件增强战场的混乱感和真实性，考验玩家的决策能力和适应能力。"
+  unit_design: "兵种分配比例合理，作战时功能符合兵种特性。"
+  user_sight: "大部分情况下应该将同一功能和位置的士兵作为一个整体单元进行战斗计算，并考虑到主角的军衔和视角范围。将主角身边的敌人分别作为一个单独单位计算。"
+  reward_principle: "后果包括战术优势、劣势、伤亡、阶段转换等。允许玩家失败、重伤或死亡。"
+  narrative_integration: "事件描述必须基于当前地形，自然融入战场叙事，避免生硬插入。"
+  
+  # 新增核心规则
+  combat_factors:
+    strength_comparison: "计算敌我双方实力对比（兵力数量、装备质量、训练程度），影响事件难度和后果严重性"
+    rank_influence: "玩家军衔影响部队服从度、可用资源和决策权重。高级军官有更多战术选择但承担更大责任"
+    level_impact: "玩家等级影响个人战斗能力、生存几率和指挥效果。高等级玩家有更高几率识别陷阱和机会"
+    morale_system: "部队士气影响战斗效率。高士气提供加成，低士气增加崩溃风险"
+    supply_status: "补给状态影响部队持久作战能力。补给不足会导致士气下降和战斗力减弱"
+    terrain_advantage: "地形优劣影响攻防效果。占据有利地形提供防御加成"
+    weather_conditions: "天气条件影响视野、移动和武器效果。恶劣天气增加不确定性"
+
+event_generation_flow:
+  - step1: "战场环境评估"
+    description: "确定战场地形（平原、森林、山脉丘陵、攻城、守城、海战等），评估地形优劣势"
+  - step2: "实力对比分析"
+    description: "计算敌我双方实力比值（1d10+等级修正），确定基础难度等级"
+    factors:
+      - "兵力数量对比（1:1.5以上为劣势，1:1-1:1.5为均势，1.5:1以上为优势）"
+      - "装备质量差异（轻装/重装/混合）"
+      - "训练程度（新兵/老兵/精锐）"
+      - "特殊单位存在（魔法单位/工程单位/飞行单位等）"
+  - step3: "玩家状态判定"
+    description: "根据玩家军衔和等级确定可用选项和决策权重"
+    factors:
+      - "军衔影响：士兵(服从命令)、队长(小队指挥)、骑士团长(战术决策)、军团长(战略指挥)"
+      - "等级影响：1-5级(新兵)、6-10级(老兵)、11-15级(精英)、16-20级(英雄)"
+  - step4: "阶段与士气判定"
+    description: "确定当前战斗阶段（进攻/防守/相持/撤退）和双方士气水平"
+  - step5: "事件触发"
+    description: "进行`roll:1d10`判定，结合实力对比和玩家状态调整结果，从当前地形的事件表中随机选择一项。如果认为生成不合理，也可以自行合理创建事件。"
+  - step6: "特殊事件触发"
+    description: "进行`roll:1d10`<1判定，如果合理则触发特殊事件，并更新影响。"
+  - step7: "难度修正"
+    description: "根据实力对比、地形、天气等因素调整事件难度和后果严重性"
+  - step8: "事件叙述"
+    description: "生成一段50-150字的生动描述，强调战场细节（声音、景象、气味、紧张感），并反映实力对比和玩家状态。展示当前的事件并引导玩家做出下一步决策。"
+  - step9: "后果生成"
+    description: "根据事件提供合理的后果，包括阶段变化、状态变化、伤亡等，并在<UpdateVariable>中更新变量"
+
+# 实力对比影响表
+strength_impact:
+  significant_disadvantage: "敌我实力比>2:1"
+    effects:
+      - "事件难度+3"
+      - "失败后果严重性x2"
+      - "士气下降速度+50%"
+      - "可用战术选项减少"
+  slight_disadvantage: "敌我实力比1.5:1-2:1"
+    effects:
+      - "事件难度+2"
+      - "失败后果严重性x1.5"
+      - "士气下降速度+25%"
+  balanced: "敌我实力比1:1-1.5:1"
+    effects:
+      - "事件难度+0"
+      - "标准后果"
+  slight_advantage: "敌我实力比1:1.5-1:2"
+    effects:
+      - "事件难度-1"
+      - "失败后果严重性x0.75"
+      - "士气维持能力+25%"
+  significant_advantage: "敌我实力比<1:2"
+    effects:
+      - "事件难度-2"
+      - "失败后果严重性x0.5"
+      - "士气维持能力+50%"
+      - "可用战术选项增加"
+
+# 军衔影响表
+rank_impact:
+  private: "士兵"
+    command_ability: "只能执行命令，无法做出战术决策"
+    resource_access: "仅个人装备"
+    responsibility: "个人生存"
+    special: "高服从度，低决策压力"
+  sergeant: "队长"
+    command_ability: "指挥10-50人小队，有限战术决策"
+    resource_access: "小队资源"
+    responsibility: "小队存亡"
+    special: "开始有决策权，承担小队责任"
+  officer: "骑士团长"
+    command_ability: "指挥100-500人部队，战术决策权"
+    resource_access: "部队资源"
+    responsibility: "战役局部成败"
+    special: "战术决策影响战局，中等责任"
+  general: "军团长"
+    command_ability: "指挥整个军队，战略决策权"
+    resource_access: "全军资源"
+    responsibility: "整个战役成败"
+    special: "战略决策决定胜负，极高责任"
+
+# 等级影响表
+level_impact:
+  recruit: "1-5级"
+    survival_chance: "低"
+    command_effect: "仅限于个人或极小团队"
+    skill_access: "基础战斗技能"
+    special: "容易受伤，决策影响有限"
+  veteran: "6-10级"
+    survival_chance: "中等"
+    command_effect: "影响小队士气"
+    skill_access: "进阶战斗技能，基础战术"
+    special: "有一定生存能力，能识别明显危险"
+  elite: "11-15级"
+    survival_chance: "高"
+    command_effect: "影响部队战术执行"
+    skill_access: "高级战斗技能，战术指挥"
+    special: "能识别复杂战场情况，有较高生存能力"
+  hero: "16-20级"
+    survival_chance: "很高"
+    command_effect: "影响全军士气"
+    skill_access: "专家级战斗技能，战略眼光"
+    special: "能在极端环境下生存，决策影响整个战局"
+
+battel_events:
+  - terrain: "平原"
+    plains_battlefield_events:
+      - id: 1
+        phase: "骑兵冲锋"
+        description: "敌军骑兵发起猛烈冲锋，尘土飞扬，大地震动。"
+        rank_impact:
+          soldier: "{{user}}只能紧握长枪，等待骑兵冲击"
+          sergeant: "{{user}}可以指挥小队组成枪阵应对"
+          officer: "{{user}}能组织多层防御，调配远程支援"
+          general: "{{user}}可以调动预备队，设下反骑兵陷阱"
+        level_impact:
+          low: "在骑兵威压下容易恐慌"
+          medium: "能稳定阵脚，有效防御"
+          high: "能精准判断冲锋路线，组织有效反击"
+        consequence: "成功防御可获得战术优势，失败则阵线崩溃"
+    
+      - id: 2
+        phase: "阵线突破"
+        description: "{{user}}的部队成功突破敌军中央阵线，敌军开始动摇。"
+        rank_impact:
+          soldier: "{{user}}只能跟随大队前进"
+          sergeant: "{{user}}可以带领小队扩大突破口"
+          officer: "{{user}}能指挥部队向两翼扩展战果"
+          general: "{{user}}可以协调全军发起总攻"
+        level_impact:
+          low: "在突破中容易脱离主力"
+          medium: "能保持突破势头"
+          high: "能识别最佳扩展方向，最大化战果"
+        consequence: "成功扩展突破可赢得战役，失败可能陷入包围"
+    
+      - id: 3
+        phase: "侧翼危机"
+        description: "敌军重兵攻击{{user}}的侧翼，战线出现危机。"
+        rank_impact:
+          soldier: "{{user}}只能坚守岗位"
+          sergeant: "{{user}}可以带领小队增援侧翼"
+          officer: "{{user}}能调整部署，稳定侧翼"
+          general: "{{user}}可以动用预备队，实施反包围"
+        level_impact:
+          low: "在危机中容易失措"
+          medium: "能有效执行防御命令"
+          high: "能发现反击机会，扭转危局"
+        consequence: "成功防御可保持战线完整，失败则全线动摇"
+    
+      - id: 4
+        phase: "远程对决"
+        description: "双方弓箭手在开阔地上激烈对射，箭矢如雨。"
+        rank_impact:
+          soldier: "{{user}}只能在盾牌后躲避箭雨"
+          sergeant: "{{user}}可以指挥小队弓箭手集中射击"
+          officer: "{{user}}能组织箭阵压制敌军"
+          general: "{{user}}可以协调各兵种应对远程威胁"
+        level_impact:
+          low: "在箭雨中容易受伤"
+          medium: "能有效利用掩护还击"
+          high: "能识别敌军弓箭手位置，精准反制"
+        consequence: "远程优势可为近战创造有利条件"
+    
+      - id: 5
+        phase: "阵型重整"
+        description: "激烈战斗后部队阵型混乱，急需重整。"
+        rank_impact:
+          soldier: "{{user}}只能寻找己方旗帜重组"
+          sergeant: "{{user}}可以收拢散兵重新编组"
+          officer: "{{user}}能组织部队轮换休整"
+          general: "{{user}}可以重新部署全军阵型"
+        level_impact:
+          low: "在混乱中容易迷失"
+          medium: "能协助重整小部队"
+          high: "能快速识别重组要点，提高效率"
+        consequence: "成功重整可恢复战斗力，失败将丧失战机"
+    
+      - id: 6
+        phase: "预备队投入"
+        description: "战局胶着，预备队的投入可能决定胜负。"
+        rank_impact:
+          soldier: "{{user}}只能等待冲锋命令"
+          sergeant: "{{user}}可以带领预备队小队参战"
+          officer: "{{user}}能指挥预备队支援关键区域"
+          general: "{{user}}可以决定预备队投入时机和方向"
+        level_impact:
+          low: "在预备队中容易冲动冒进"
+          medium: "能有效执行投入任务"
+          high: "能识别最佳投入时机，改变战局"
+        consequence: "正确投入可打破僵局，错误时机将浪费精锐"
+    
+      - id: 7
+        phase: "士气崩溃"
+        description: "部分部队开始溃退，恐慌情绪蔓延。"
+        rank_impact:
+          soldier: "{{user}}只能选择坚守或撤退"
+          sergeant: "{{user}}可以阻止小队溃散"
+          officer: "{{user}}能稳定战线，阻止恐慌扩散"
+          general: "{{user}}可以动用督战队，重整士气"
+        level_impact:
+          low: "容易受恐慌情绪影响"
+          medium: "能保持冷静，协助稳定局势"
+          high: "能鼓舞士气，扭转崩溃趋势"
+        consequence: "控制崩溃可避免全军溃败，失败将导致灾难"
+    
+      - id: 8
+        phase: "战术机动"
+        description: "战场形势变化，需要快速调整部署。"
+        rank_impact:
+          soldier: "{{user}}只能跟随部队移动"
+          sergeant: "{{user}}可以指挥小队执行机动"
+          officer: "{{user}}能组织部队战术转移"
+          general: "{{user}}可以实施大规模战术调整"
+        level_impact:
+          low: "在机动中容易掉队混乱"
+          medium: "能有效完成机动任务"
+          high: "能预判战场变化，提前机动"
+        consequence: "成功机动可获得位置优势，失败将暴露弱点"
+    
+      - id: 9
+        phase: "追击溃敌"
+        description: "敌军开始溃退，追击时机到来。"
+        rank_impact:
+          soldier: "{{user}}只能跟随追击"
+          sergeant: "{{user}}可以带领小队追击特定目标"
+          officer: "{{user}}能组织有序追击扩大战果"
+          general: "{{user}}可以指挥全军追击，决定战略目标"
+        level_impact:
+          low: "在追击中容易脱离主力"
+          medium: "能判断合理追击范围"
+          high: "能协调各部队，最大化追击效果"
+        consequence: "适度追击可扩大胜利，过度可能遭反击"
+    
+      - id: 10
+        phase: "战役转折"
+        description: "战局出现关键转折点，决策影响整个战役。"
+        rank_impact:
+          soldier: "{{user}}只能见证历史时刻"
+          sergeant: "{{user}}可以在局部影响战局"
+          officer: "{{user}}的决策影响战役走向"
+          general: "{{user}}的选择将决定战役胜负"
+        level_impact:
+          low: "难以理解战场全局"
+          medium: "能把握局部战机"
+          high: "能洞察全局，做出关键决策"
+        consequence: "正确决策可赢得战役，错误将导致失败"
+    
+    plains_combat_rules:
+      - "开阔地形利于大规模部队展开"
+      - "骑兵和远程部队作用显著"
+      - "阵型保持至关重要"
+      - "视野良好便于指挥控制"
+      - "缺乏天然掩护，依赖战术机动"
+    
+    plains_battlefield_examples:
+      - example_id: 1
+        rank: "{{get_message_variable::stat_data.角色.部队.指挥官属性.玩家军衔}}==0"
+        level: "{{get_message_variable::stat_data.角色.状态.等级}}<=9"
+        phase: "骑兵冲锋"
+        situation: |
+          大地在马蹄下颤抖，{{user}}作为新兵第一次面对骑兵冲锋。前排的老兵们死死抵住盾牌，但{{user}}能看到他们手臂的颤抖。敌军重骑兵的旗帜在尘土中若隐若现，距离已经不足三百步。{{user}}握矛的手心全是汗，脑子里只剩下训练时教官的吼声："稳住！等他们撞上来！"但现在，求生的本能让{{user}}想要转身逃跑。
+    
+      - example_id: 2
+        rank: "{{get_message_variable::stat_data.角色.部队.指挥官属性.玩家军衔}}==1"
+        level: "{{get_message_variable::stat_data.角色.状态.等级}}>=9 && {{get_message_variable::stat_data.角色.状态.等级}}<=13 "
+        phase: "侧翼危机"
+        previous_choice: "分兵堵住缺口"
+        consequence: |
+          {{user}}的果断决定暂时稳住了侧翼，但代价惨重。派去堵缺口的半个小队全军覆没，现在{{user}}只剩下十二个还能战斗的士兵。更糟的是，主力部队开始后撤，{{user}}的部队有被孤立包围的危险。敌军显然发现了这个弱点，正在调集更多兵力向{{user}}的阵地压来。
+    
+      - example_id: 3
+        rank: "{{get_message_variable::stat_data.角色.部队.指挥官属性.玩家军衔}}==2"
+        level: "{{get_message_variable::stat_data.角色.状态.等级}}>=13"
+        phase: "战役转折"
+        previous_choice: "投入预备队反击"
+        consequence: |
+          {{user}}的反击如同利刃般撕开了敌军阵线，但现在这把刀卡住了。预备队深陷敌阵，而敌军精锐正从两翼包抄。传令兵报告左翼已经开始溃退，右翼也摇摇欲坠。{{user}}站在指挥台上，能看到整个战场的崩溃正在像瘟疫一样蔓延。{{user}}必须决定：是立即撤退保存实力，还是赌上一切发起最后一击？
+    
+      - example_id: 4
+        rank: "{{get_message_variable::stat_data.角色.部队.指挥官属性.玩家军衔}}==3"
+        level: "{{get_message_variable::stat_data.角色.状态.等级}}>=13"
+        phase: "战略决策"
+        previous_choice: "下令全线进攻"
+        consequence: |
+          {{user}}的豪赌取得了惊人战果——敌军主力已被击溃。但胜利的代价是惨重的：三分之二的部队失去战斗力，补给线拉得过长，而且侦察骑兵报告敌军援军正在急速赶来。更棘手的是，几个同盟部落看到{{user}}的损失后开始动摇。现在{{user}}必须决定：是立即撤退巩固战果，还是冒险继续推进逼迫敌人求和？
+      
+  - terrain: "森林"
+    forests_battlefield_events:
+      - id: 1
+        phase: "伏击遭遇"
+        description: "密林中突然射出冷箭，敌军埋伏部队现身。"
+        rank_impact:
+          soldier: "{{user}}只能寻找最近的树木掩护"
+          sergeant: "{{user}}可以指挥小队建立环形防御"
+          officer: "{{user}}能组织反击，寻找伏击者位置"
+          general: "{{user}}可以调动预备队反包围伏兵"
+        level_impact:
+          low: "在突袭中容易惊慌失措"
+          medium: "能快速判断危险来源"
+          high: "能识破伏击陷阱，组织有效应对"
+        consequence: "成功反伏击可重创敌军，失败将损失惨重"
+    
+      - id: 2
+        phase: "密林推进"
+        description: "部队在茂密丛林中艰难前进，视线严重受限。"
+        rank_impact:
+          soldier: "{{user}}只能跟随前方士兵"
+          sergeant: "{{user}}可以派出侦察兵探路"
+          officer: "{{user}}能规划推进路线，避开危险区域"
+          general: "{{user}}可以协调多路部队同步推进"
+        level_impact:
+          low: "在密林中容易迷失方向"
+          medium: "能识别地形特征保持方向"
+          high: "能利用地形掩护，隐蔽接近目标"
+        consequence: "正确路线可达成战术突然性，错误将陷入困境"
+    
+      - id: 3
+        phase: "侧翼包抄"
+        description: "敌军试图绕过密林包抄{{user}}的侧翼。"
+        rank_impact:
+          soldier: "{{user}}只能固守岗位"
+          sergeant: "{{user}}可以设置警戒哨预警"
+          officer: "{{user}}能组织反包抄部队"
+          general: "{{user}}可以设下陷阱，诱敌深入"
+        level_impact:
+          low: "难以察觉侧翼威胁"
+          medium: "能发现包抄迹象及时报告"
+          high: "能预判包抄路线，提前部署"
+        consequence: "成功反制可粉碎敌军计划，失败将陷入包围"
+    
+      - id: 4
+        phase: "林间混战"
+        description: "战斗在密林中爆发，战线支离破碎。"
+        rank_impact:
+          soldier: "{{user}}只能与最近的敌人搏斗"
+          sergeant: "{{user}}可以组织小队协同作战"
+          officer: "{{user}}能维持局部战线完整"
+          general: "{{user}}可以控制关键节点，影响全局"
+        level_impact:
+          low: "在混战中容易与部队失散"
+          medium: "能保持小队配合"
+          high: "能在混乱中把握战机"
+        consequence: "保持组织可赢得混战，混乱将导致溃败"
+    
+      - id: 5
+        phase: "补给危机"
+        description: "森林中补给困难，部队开始缺粮少药。"
+        rank_impact:
+          soldier: "{{user}}只能忍受饥饿继续战斗"
+          sergeant: "{{user}}可以组织小队寻找食物"
+          officer: "{{user}}能调整部署节约资源"
+          general: "{{user}}可以决定撤退或冒险推进"
+        level_impact:
+          low: "饥饿严重影响战斗力"
+          medium: "能找到替代食物来源"
+          high: "能精确计算资源，坚持更久"
+        consequence: "资源管理决定部队持久力"
+    
+      - id: 6
+        phase: "夜战危机"
+        description: "夜幕降临，森林中漆黑一片，危机四伏。"
+        rank_impact:
+          soldier: "{{user}}只能依靠听觉判断危险"
+          sergeant: "{{user}}可以组织夜间警戒"
+          officer: "{{user}}能制定夜战战术"
+          general: "{{user}}可以决定夜袭或固守"
+        level_impact:
+          low: "黑暗中容易恐慌"
+          medium: "能适应夜战环境"
+          high: "能利用夜色掩护行动"
+        consequence: "夜战充满风险但也提供机会"
+    
+      - id: 7
+        phase: "地形利用"
+        description: "特殊地形提供战术机会。"
+        rank_impact:
+          soldier: "{{user}}只能利用地形保护自己"
+          sergeant: "{{user}}可以选择有利防守位置"
+          officer: "{{user}}能部署部队占据要地"
+          general: "{{user}}可以利用地形设计战术"
+        level_impact:
+          low: "只能识别明显地形特征"
+          medium: "能找到有利战术位置"
+          high: "能创造性利用地形获得优势"
+        consequence: "地形利用可改变力量对比"
+    
+      - id: 8
+        phase: "通讯中断"
+        description: "密林阻碍通讯，部队联系困难。"
+        rank_impact:
+          soldier: "{{user}}只能等待命令"
+          sergeant: "{{user}}可以派传令兵联系"
+          officer: "{{user}}能建立备用通讯方式"
+          general: "{{user}}可以预设方案应对通讯中断"
+        level_impact:
+          low: "失去联系后无所适从"
+          medium: "能按预定计划行动"
+          high: "能独立判断形势做出正确决策"
+        consequence: "通讯能力影响指挥效率"
+    
+      - id: 9
+        phase: "野兽威胁"
+        description: "森林中的猛兽被战斗惊扰，威胁双方。"
+        rank_impact:
+          soldier: "{{user}}只能躲避野兽攻击"
+          sergeant: "{{user}}可以组织防御野兽"
+          officer: "{{user}}能利用野兽扰乱敌军"
+          general: "{{user}}可以将野兽纳入战术考量"
+        level_impact:
+          low: "容易被野兽伤害"
+          medium: "能避开或驱赶野兽"
+          high: "能驯服或引导野兽攻击敌人"
+        consequence: "野兽可能成为意外变数"
+    
+      - id: 10
+        phase: "撤退危机"
+        description: "战局不利，需要在密林中撤退。"
+        rank_impact:
+          soldier: "{{user}}只能跟随部队撤退"
+          sergeant: "{{user}}可以组织小队断后"
+          officer: "{{user}}能规划撤退路线和顺序"
+          general: "{{user}}可以组织全军有序撤退"
+        level_impact:
+          low: "撤退中容易掉队迷路"
+          medium: "能保持队形撤退"
+          high: "能设下埋伏延缓追兵"
+        consequence: "有序撤退可保存实力，混乱将导致覆灭"
+    
+    forests_combat_rules:
+      - "视野受限，远程武器效果下降"
+      - "密林提供天然掩护，防御方优势明显"
+      - "机动困难，大规模部队难以展开"
+      - "通讯容易中断，指挥控制困难"
+      - "熟悉地形者可获得巨大优势"
+      - "伏击和反伏击是主要作战形式"
+      - "补给线脆弱，持久作战能力受限"
+      - "天气影响更加显著（雨雾进一步限制视野）"
+    
+    forests_battlefield_examples:
+      - example_id: 1
+        rank: "{{get_message_variable::stat_data.角色.部队.指挥官属性.玩家军衔}}==0"
+        level: "{{get_message_variable::stat_data.角色.状态.等级}}<=9"
+        phase: "伏击遭遇"
+        situation: |
+          {{user}}正跟着队伍在密林中穿行，突然前方传来惨叫，接着箭矢从四面八方射来。作为新兵，{{user}}本能地扑向最近的树干，但身边已经有好几个战友倒下。浓密的树丛中看不到敌人，只有不断飞来的箭矢和同伴的哀嚎。{{user}}紧握武器的手在颤抖，不知道下一个倒下的会不会是自己。
+    
+      - example_id: 2
+        rank: "{{get_message_variable::stat_data.角色.部队.指挥官属性.玩家军衔}}==1"
+        level: "{{get_message_variable::stat_data.角色.状态.等级}}>=9 && {{get_message_variable::stat_data.角色.状态.等级}}<=13 "
+        phase: "密林推进"
+        previous_choice: "派出侦察兵探路"
+        consequence: |
+          {{user}}的侦察兵没有回来，这本身就是最坏的信号。现在{{user}}的小队停滞在密林中，前方可能有埋伏，后退又会打乱整个推进计划。队员们焦虑地看着{{user}}，密林中的寂静比任何声音都更令人恐惧。{{user}}必须决定：是冒险继续前进，还是改变路线绕过这个区域？
+    
+      - example_id: 3
+        rank: "{{get_message_variable::stat_data.角色.部队.指挥官属性.玩家军衔}}==2"
+        level: "{{get_message_variable::stat_data.角色.状态.等级}}>=13"
+        phase: "林间混战"
+        previous_choice: "分散部队多路进攻"
+        consequence: |
+          {{user}}的分散战术确实让敌军措手不及，但现在战况已经完全失控。各小队在密林中各自为战，{{user}}失去了对部队的有效指挥。传令兵要么迷路，要么被截杀。{{user}}能听到四周的厮杀声，却不知道哪边占优。{{user}}必须决定：是冒险亲自前往最激烈的战区重整部队，还是在原地建立指挥点等待各部汇合？
+    
+      - example_id: 4
+        rank: "{{get_message_variable::stat_data.角色.部队.指挥官属性.玩家军衔}}==3"
+        level: "{{get_message_variable::stat_data.角色.状态.等级}}>=13"
+        phase: "撤退危机"
+        previous_choice: "下令全军撤退"
+        consequence: |
+          {{user}}的撤退命令正在变成一场灾难。密林严重阻碍了部队的机动，各部队在撤退中相互阻塞，敌军趁势猛攻。更糟的是，暴雨突然降临，泥泞的道路和有限的能见度让情况雪上加霜。{{user}}现在必须决定：是放弃重装备加速撤退，还是组织精锐断后，为主力争取时间？  
+
+  - terrain: "山脉丘陵"
+    hills_mountains_battlefield_events:
+      - id: 1
+        phase: "高地争夺"
+        description: "双方为控制制高点展开激烈战斗。"
+        rank_impact:
+          soldier: "{{user}}只能跟随部队向上冲锋"
+          sergeant: "{{user}}可以指挥小队选择进攻路线"
+          officer: "{{user}}能组织多路佯攻迷惑敌军"
+          general: "{{user}}可以协调整个山地战役的进攻节奏"
+        level_impact:
+          low: "在陡峭地形中容易疲惫失足"
+          medium: "能适应山地作战保持战斗力"
+          high: "能精准判断最佳登山路线和时机"
+        consequence: "控制高地可获得巨大战术优势"
+    
+      - id: 2
+        phase: "隘口攻防"
+        description: "狭窄的山口成为双方必争之地。"
+        rank_impact:
+          soldier: "{{user}}只能在指定位置防守"
+          sergeant: "{{user}}可以组织小队轮换防守"
+          officer: "{{user}}能部署兵力最大化隘口防御"
+          general: "{{user}}可以决定是否放弃隘口实施更大战略"
+        level_impact:
+          low: "在狭窄地形中容易恐慌"
+          medium: "能有效利用隘口地形防守"
+          high: "能预判敌军进攻方式提前准备"
+        consequence: "隘口控制权决定山地战主动权"
+    
+      - id: 3
+        phase: "侧翼迂回"
+        description: "敌军试图从险峻山脊迂回包抄。"
+        rank_impact:
+          soldier: "{{user}}只能固守现有阵地"
+          sergeant: "{{user}}可以派出警戒小组"
+          officer: "{{user}}能组织反迂回部队"
+          general: "{{user}}可以设下陷阱诱敌深入险地"
+        level_impact:
+          low: "难以发现迂回威胁"
+          medium: "能识别敌军迂回迹象"
+          high: "能利用地形粉碎敌军迂回企图"
+        consequence: "成功反制可重创敌军精锐"
+    
+      - id: 4
+        phase: "山洪危机"
+        description: "暴雨引发山洪，改变战场态势。"
+        rank_impact:
+          soldier: "{{user}}只能寻找高地避难"
+          sergeant: "{{user}}可以组织小队转移"
+          officer: "{{user}}能调整部署应对洪水"
+          general: "{{user}}可以利用洪水作为战术武器"
+        level_impact:
+          low: "在自然灾害面前无助"
+          medium: "能识别安全区域及时转移"
+          high: "能预判洪水影响并加以利用"
+        consequence: "自然灾害可能改变战局走向"
+    
+      - id: 5
+        phase: "补给断绝"
+        description: "山路被切断，补给无法送达。"
+        rank_impact:
+          soldier: "{{user}}只能忍受饥饿寒冷"
+          sergeant: "{{user}}可以组织小队寻找食物"
+          officer: "{{user}}能重新分配有限资源"
+          general: "{{user}}可以决定撤退或冒险空投"
+        level_impact:
+          low: "补给断绝严重影响士气"
+          medium: "能找到替代生存方式"
+          high: "能精确计算坚持时间做出最优决策"
+        consequence: "山地作战后勤决定持久力"
+    
+      - id: 6
+        phase: "落石危机"
+        description: "敌军利用落石攻击，山路变成死亡陷阱。"
+        rank_impact:
+          soldier: "{{user}}只能寻找掩体躲避"
+          sergeant: "{{user}}可以指挥小队规避危险区域"
+          officer: "{{user}}能组织工兵清理落石"
+          general: "{{user}}可以炮击山体引发反落石"
+        level_impact:
+          low: "容易在落石中伤亡"
+          medium: "能识别落石征兆及时躲避"
+          high: "能预判落石轨迹完美规避"
+        consequence: "落石控制影响山地通行能力"
+    
+      - id: 7
+        phase: "云雾遮蔽"
+        description: "浓雾笼罩山峦，能见度急剧下降。"
+        rank_impact:
+          soldier: "{{user}}只能依靠听觉判断敌情"
+          sergeant: "{{user}}可以组织雾中警戒"
+          officer: "{{user}}能制定雾战特殊战术"
+          general: "{{user}}可以利用浓雾掩护重大调动"
+        level_impact:
+          low: "在浓雾中容易迷失方向"
+          medium: "能保持基本方向感和警戒"
+          high: "能利用浓雾实施奇袭"
+        consequence: "浓雾既是危险也是机会"
+    
+      - id: 8
+        phase: "海拔不适"
+        description: "高海拔导致士兵出现高原反应。"
+        rank_impact:
+          soldier: "{{user}}只能忍受身体不适"
+          sergeant: "{{user}}可以调整小队行进节奏"
+          officer: "{{user}}能轮换部队适应海拔"
+          general: "{{user}}可以选择更适合的作战海拔"
+        level_impact:
+          low: "高原反应严重影响战斗力"
+          medium: "能较快适应高海拔环境"
+          high: "能利用海拔差异获得战术优势"
+        consequence: "海拔适应度影响山地作战效能"
+    
+      - id: 9
+        phase: "岩壁攻坚"
+        description: "必须在陡峭岩壁上实施进攻。"
+        rank_impact:
+          soldier: "{{user}}只能艰难攀爬"
+          sergeant: "{{user}}可以组织攀爬保护和支援"
+          officer: "{{user}}能选择最佳攻坚路线"
+          general: "{{user}}可以协调多路岩壁攻击"
+        level_impact:
+          low: "攀爬中容易失足坠落"
+          medium: "能完成基本岩壁作战"
+          high: "能在岩壁上实施复杂战术动作"
+        consequence: "岩壁作战能力决定山地战成败"
+    
+      - id: 10
+        phase: "雪崩威胁"
+        description: "战斗引发雪崩，全军面临灭顶之灾。"
+        rank_impact:
+          soldier: "{{user}}只能寻找掩体祈祷"
+          sergeant: "{{user}}可以组织小队紧急避险"
+          officer: "{{user}}能指挥部队撤离危险区"
+          general: "{{user}}可以决定是否利用雪崩攻击敌军"
+        level_impact:
+          low: "在雪崩面前完全无助"
+          medium: "能识别雪崩前兆及时预警"
+          high: "能预判雪崩路径完美规避"
+        consequence: "雪崩可能瞬间改变战场态势"
+    
+    hills_mountains_combat_rules:
+      - "地形起伏大，远程武器射程和精度受影响"
+      - "制高点控制提供巨大战术优势"
+      - "机动困难，部队调动缓慢"
+      - "狭窄通道易守难攻，但也易被切断"
+      - "天气变化剧烈，可能瞬间改变战局"
+      - "海拔差异影响士兵体力和装备效能"
+      - "落石、雪崩等自然灾害成为战术因素"
+      - "熟悉山地地形者可获得决定性优势"
+    
+    hills_mountains_battlefield_examples:
+    
+      - example_id: 1
+        rank: "{{get_message_variable::stat_data.角色.部队.指挥官属性.玩家军衔}}==0"
+        level: "{{get_message_variable::stat_data.角色.状态.等级}}<=9"
+        phase: "高地争夺"
+        situation: |
+          {{user}}喘着粗气向上攀爬，每一步都感觉肺在燃烧。山顶的敌军不断向下投掷石块，{{user}}身边的战友一个接一个滚落山崖。作为新兵，{{user}}从未经历过如此残酷的山地战斗。手中的武器变得沉重，腿像灌了铅一样，但停下就意味着死亡。
+    
+      - example_id: 2
+        rank: "{{get_message_variable::stat_data.角色.部队.指挥官属性.玩家军衔}}==1"
+        level: "{{get_message_variable::stat_data.角色.状态.等级}}>=9 && {{get_message_variable::stat_data.角色.状态.等级}}<=13 "
+        phase: "隘口攻防"
+        previous_choice: "死守隘口不放"
+        consequence: |
+          {{user}}的坚守确实拖延了敌军推进，但现在陷入了绝境。隘口后方山路被落石堵塞，补给完全断绝。{{user}}的小队只剩下八个人，每人只剩几支箭。敌军正在集结准备最后一击，而{{user}}必须决定：是战斗到最后一兵一卒，还是尝试从险峻的侧崖撤退。
+    
+      - example_id: 3
+        rank: "{{get_message_variable::stat_data.角色.部队.指挥官属性.玩家军衔}}==2"
+        level: "{{get_message_variable::stat_data.角色.状态.等级}}>=13"
+        phase: "云雾遮蔽"
+        previous_choice: "利用浓雾发动奇袭"
+        consequence: |
+          {{user}}的奇袭取得了部分成功，但浓雾也让部队完全分散。现在{{user}}和指挥部失去联系，各部队在雾中各自为战。更糟的是，浓雾中传来雪崩的轰鸣声，{{user}}不确定是自己的炮击还是敌军行动引发的。{{user}}必须立即决定：是冒险继续进攻，还是收拢部队确保安全。
+    
+      - example_id: 4
+        rank: "{{get_message_variable::stat_data.角色.部队.指挥官属性.玩家军衔}}==3"
+        level: "{{get_message_variable::stat_data.角色.状态.等级}}>=13"
+        phase: "雪崩威胁"
+        previous_choice: "炮击山脊引发雪崩"
+        consequence: |
+          {{user}}的战术成功了——雪崩吞噬了敌军主力。但胜利的代价超出预期：雪崩规模失控，掩埋了重要的补给路线，而且气象官报告更大规模的暴风雪正在逼近。{{user}}的部队分散在各山头，补给只够维持三天。现在{{user}}必须决定：是立即组织撤退避免全军覆没，还是冒险继续围剿残敌。
+      
+  - terrain: "攻城"
+    siege_offensive_battlefield_events:
+      - id: 1
+        phase: "城墙进攻"
+        description: "部队在箭雨和滚木下向城墙发起猛攻。"
+        rank_impact:
+          soldier: "{{user}}只能跟随云梯向上攀爬"
+          sergeant: "{{user}}可以指挥小队选择攻击段"
+          officer: "{{user}}能组织多波次连续进攻"
+          general: "{{user}}可以协调全线进攻节奏"
+        level_impact:
+          low: "在攀爬中容易中箭坠落"
+          medium: "能有效利用攻城器械掩护"
+          high: "能识别城墙防御薄弱点"
+        consequence: "成功登墙可建立立足点，失败将损失惨重"
+    
+      - id: 2
+        phase: "城门突破"
+        description: "攻城锤反复撞击城门，守军顽强抵抗。"
+        rank_impact:
+          soldier: "{{user}}只能在盾牌掩护下推进"
+          sergeant: "{{user}}可以组织小队保护攻城锤"
+          officer: "{{user}}能部署兵力牵制守军火力"
+          general: "{{user}}可以决定主攻城门或寻找替代方案"
+        level_impact:
+          low: "在城门下容易成为靶子"
+          medium: "能有效执行突破任务"
+          high: "能判断最佳突破时机"
+        consequence: "城门突破可快速取胜，但风险极高"
+    
+      - id: 3
+        phase: "攻城塔推进"
+        description: "巨型攻城塔缓慢向城墙移动。"
+        rank_impact:
+          soldier: "{{user}}只能在塔内等待接敌"
+          sergeant: "{{user}}可以指挥塔内部队准备"
+          officer: "{{user}}能协调多座攻城塔同步推进"
+          general: "{{user}}可以决定攻城塔的投入时机"
+        level_impact:
+          low: "在移动塔内容易晕眩失衡"
+          medium: "能保持战斗准备状态"
+          high: "能预判守军反制措施"
+        consequence: "攻城塔成功靠墙可输送大量兵力"
+    
+      - id: 4
+        phase: "投石机轰炸"
+        description: "远程器械轰击城墙和城内目标。"
+        rank_impact:
+          soldier: "{{user}}只能操作投石机部件"
+          sergeant: "{{user}}可以指挥单台投石机小组"
+          officer: "{{user}}能组织炮兵集中轰击"
+          general: "{{user}}可以决定轰炸优先级和目标"
+        level_impact:
+          low: "操作不熟练命中率低"
+          medium: "能准确命中大型目标"
+          high: "能精准打击关键防御点"
+        consequence: "有效轰炸可削弱守军防御"
+    
+      - id: 5
+        phase: "壕沟穿越"
+        description: "部队在守军火力下穿越护城河和壕沟。"
+        rank_impact:
+          soldier: "{{user}}只能冒着箭雨填埋壕沟"
+          sergeant: "{{user}}可以组织小队架设便桥"
+          officer: "{{user}}能规划安全穿越路线"
+          general: "{{user}}可以决定主攻方向避开险要"
+        level_impact:
+          low: "在开阔地容易伤亡"
+          medium: "能利用地形减少暴露"
+          high: "能组织烟雾掩护穿越"
+        consequence: "成功穿越可接近城墙根"
+    
+      - id: 6
+        phase: "地道挖掘"
+        description: "工兵挖掘地道试图绕过或破坏城墙。"
+        rank_impact:
+          soldier: "{{user}}只能在地下艰难挖掘"
+          sergeant: "{{user}}可以指挥挖掘小组作业"
+          officer: "{{user}}能规划地道路线和结构"
+          general: "{{user}}可以决定地道战术的投入"
+        level_impact:
+          low: "在地下容易迷失方向"
+          medium: "能完成基本挖掘任务"
+          high: "能精准计算爆破点和时机"
+        consequence: "地道成功可出其不意"
+    
+      - id: 7
+        phase: "火攻尝试"
+        description: "使用火矢和燃烧物攻击木质结构。"
+        rank_impact:
+          soldier: "{{user}}只能发射火矢"
+          sergeant: "{{user}}可以组织火攻小队"
+          officer: "{{user}}能协调火攻与主力进攻"
+          general: "{{user}}可以决定火攻规模和目标"
+        level_impact:
+          low: "火攻效果有限且易伤己"
+          medium: "能有效点燃指定目标"
+          high: "能利用风向最大化火势"
+        consequence: "成功火攻可制造混乱"
+    
+      - id: 8
+        phase: "预备队投入"
+        description: "战局胶着，需要投入最后生力军。"
+        rank_impact:
+          soldier: "{{user}}只能等待冲锋命令"
+          sergeant: "{{user}}可以带领预备队小队"
+          officer: "{{user}}能指挥预备队支援关键点"
+          general: "{{user}}可以决定预备队投入时机"
+        level_impact:
+          low: "在预备队中容易紧张失误"
+          medium: "能有效执行投入任务"
+          high: "能识别最佳投入时机改变战局"
+        consequence: "预备队决定攻城成败"
+    
+      - id: 9
+        phase: "心理攻势"
+        description: "通过劝降和威慑动摇守军士气。"
+        rank_impact:
+          soldier: "{{user}}只能呼喊口号"
+          sergeant: "{{user}}可以组织劝降喊话"
+          officer: "{{user}}能设计心理战策略"
+          general: "{{user}}可以决定劝降条件和时机"
+        level_impact:
+          low: "心理战效果有限"
+          medium: "能有效执行心理战术"
+          high: "能精准把握守军心理弱点"
+        consequence: "心理战成功可减少伤亡"
+    
+      - id: 10
+        phase: "城内巷战"
+        description: "突破城墙后与守军展开街巷战斗。"
+        rank_impact:
+          soldier: "{{user}}只能逐屋清剿"
+          sergeant: "{{user}}可以指挥小队控制街区"
+          officer: "{{user}}能组织多路清剿行动"
+          general: "{{user}}可以决定清剿节奏和目标"
+        level_impact:
+          low: "在巷战中容易遭伏击"
+          medium: "能有效执行清剿任务"
+          high: "能预判伏击点减少损失"
+        consequence: "巷战控制决定最终胜利"
+    
+    siege_offensive_combat_rules:
+      - "攻城方通常需要3倍兵力优势才能成功"
+      - "城墙提供巨大防御优势，进攻方伤亡率高"
+      - "攻城器械是关键但易被守军破坏"
+      - "时间压力巨大，拖延可能遭遇援军"
+      - "补给线脆弱，长期围困风险高"
+      - "天气影响显著（风雨影响器械和视野）"
+      - "士气管理至关重要，高伤亡易导致溃败"
+      - "多重进攻路线可分散守军兵力"
+    
+    siege_offensive_battlefield_examples:
+    
+      - example_id: 1
+        rank: "{{get_message_variable::stat_data.角色.部队.指挥官属性.玩家军衔}}==0"
+        level: "{{get_message_variable::stat_data.角色.状态.等级}}<=9"
+        phase: "城墙进攻"
+        situation: |
+          {{user}}紧抓着摇晃的云梯向上攀爬，头顶是不断落下的石块和沸油。作为新兵，{{user}}的盾牌已经插满了箭矢，每向上一步都感觉是迈向死亡。城墙上的守军疯狂地向下投掷一切可用的东西，{{user}}能听到身边不断有人坠落时的惨叫。
+    
+      - example_id: 2
+        rank: "{{get_message_variable::stat_data.角色.部队.指挥官属性.玩家军衔}}==1"
+        level: "{{get_message_variable::stat_data.角色.状态.等级}}>=9 && {{get_message_variable::stat_data.角色.状态.等级}}<=13 "
+        phase: "城门突破"
+        previous_choice: "强攻主城门"
+        consequence: |
+          {{user}}的强攻造成了惨重损失，攻城锤小组全军覆没。现在{{user}}的小队被困在城门洞内，前进不得后退不能。守军从城头倾倒热油，浓烟让{{user}}几乎窒息。{{user}}必须立即决定：是冒险继续撞击城门，还是尝试炸毁侧墙寻找新突破口。
+    
+      - example_id: 3
+        rank: "{{get_message_variable::stat_data.角色.部队.指挥官属性.玩家军衔}}==2"
+        level: "{{get_message_variable::stat_data.角色.状态.等级}}>=13"
+        phase: "预备队投入"
+        previous_choice: "保留最后预备队"
+        consequence: |
+          {{user}}的谨慎现在看起来是错的——攻城塔成功靠墙但无人支援，占领的段楼正在失守。全军疲惫不堪，伤亡超过三成。侦察兵报告守军援军即将到达。{{user}}站在指挥台上，必须决定：是投入最后生力军赌一把，还是立即撤退保存实力。
+    
+      - example_id: 4
+        rank: "{{get_message_variable::stat_data.角色.部队.指挥官属性.玩家军衔}}==3"
+        level: "{{get_message_variable::stat_data.角色.状态.等级}}>=13"
+        phase: "心理攻势"
+        previous_choice: "下令屠城威慑"
+        consequence: |
+          {{user}}的残酷战术产生了反效果——守军抵抗更加顽强，周边城镇纷纷支援敌军。更糟的是，{{user}}的部队因暴行士气低落，逃兵数量激增。现在{{user}}必须决定：是继续强攻挽回颜面，还是撤围避免更大政治危机。
+  
+  - terrain: "守城"
+    siege_defense_battlefield_events:
+      - id: 1
+        phase: "城墙防御"
+        description: "敌军如潮水般涌向城墙，守军全力抵抗。"
+        rank_impact:
+          soldier: "{{user}}只能在指定垛口射击"
+          sergeant: "{{user}}可以指挥小队防守城墙段"
+          officer: "{{user}}能调配兵力填补缺口"
+          general: "{{user}}可以统筹全城防御部署"
+        level_impact:
+          low: "在敌军攻势下容易恐慌"
+          medium: "能有效执行防御任务"
+          high: "能预判敌军主攻方向及时增援"
+        consequence: "城墙失守将导致防御体系崩溃"
+    
+      - id: 2
+        phase: "城门坚守"
+        description: "敌军集中攻击城门，守军殊死抵抗。"
+        rank_impact:
+          soldier: "{{user}}只能搬运物资堵门"
+          sergeant: "{{user}}可以组织小队加固城门"
+          officer: "{{user}}能部署预备队支援城门"
+          general: "{{user}}可以决定是否放弃外城门"
+        level_impact:
+          low: "在城门震动中容易失措"
+          medium: "能有效执行城门防御"
+          high: "能判断城门结构弱点及时加固"
+        consequence: "城门失守将让敌军长驱直入"
+    
+      - id: 3
+        phase: "投石机反击"
+        description: "守军使用城墙投石机反击敌军器械。"
+        rank_impact:
+          soldier: "{{user}}只能操作投石机部件"
+          sergeant: "{{user}}可以指挥单台投石机小组"
+          officer: "{{user}}能组织集中火力打击"
+          general: "{{user}}可以决定优先打击目标"
+        level_impact:
+          low: "操作生疏命中率低"
+          medium: "能准确命中大型目标"
+          high: "能精准摧毁敌军关键器械"
+        consequence: "有效反击可削弱敌军攻城能力"
+    
+      - id: 4
+        phase: "夜袭防御"
+        description: "敌军趁夜色发动突袭。"
+        rank_impact:
+          soldier: "{{user}}只能依靠火把照明警戒"
+          sergeant: "{{user}}可以组织夜间巡逻"
+          officer: "{{user}}能部署夜间防御体系"
+          general: "{{user}}可以预判夜袭可能方向"
+        level_impact:
+          low: "在黑暗中容易误判敌情"
+          medium: "能保持夜间基本警戒"
+          high: "能利用夜色设下反伏击"
+        consequence: "夜袭成功将动摇守军士气"
+    
+      - id: 5
+        phase: "物资调配"
+        description: "守城物资开始短缺，需要合理分配。"
+        rank_impact:
+          soldier: "{{user}}只能接受配给减少"
+          sergeant: "{{user}}可以统计小队物资需求"
+          officer: "{{user}}能重新分配有限资源"
+          general: "{{user}}可以决定物资使用优先级"
+        level_impact:
+          low: "物资短缺严重影响士气"
+          medium: "能找到替代方案维持防御"
+          high: "能精确计算物资坚持时间"
+        consequence: "物资管理决定守城持久力"
+    
+      - id: 6
+        phase: "内奸清查"
+        description: "发现城内可能有敌军内应。"
+        rank_impact:
+          soldier: "{{user}}只能报告可疑情况"
+          sergeant: "{{user}}可以组织小队内部排查"
+          officer: "{{user}}能部署反间谍措施"
+          general: "{{user}}可以决定清查范围和力度"
+        level_impact:
+          low: "容易误伤无辜引发恐慌"
+          medium: "能有效识别可疑人员"
+          high: "能设局诱捕内奸网络"
+        consequence: "内奸问题可能从内部瓦解防御"
+    
+      - id: 7
+        phase: "瘟疫爆发"
+        description: "城内爆发瘟疫，守军非战斗减员严重。"
+        rank_impact:
+          soldier: "{{user}}只能祈祷不被感染"
+          sergeant: "{{user}}可以组织隔离病患"
+          officer: "{{user}}能调配医疗资源"
+          general: "{{user}}可以决定是否隐瞒疫情"
+        level_impact:
+          low: "在瘟疫面前完全无助"
+          medium: "能采取基本防疫措施"
+          high: "能组织有效疫情防控"
+        consequence: "瘟疫可能比敌军更致命"
+    
+      - id: 8
+        phase: "水源保护"
+        description: "敌军试图切断或污染城内水源。"
+        rank_impact:
+          soldier: "{{user}}只能守卫指定水井"
+          sergeant: "{{user}}可以组织水源巡逻"
+          officer: "{{user}}能部署多重水源保护"
+          general: "{{user}}可以决定水源分配方案"
+        level_impact:
+          low: "水源危机中容易恐慌"
+          medium: "能有效保护现有水源"
+          high: "能找到备用水源并保护"
+        consequence: "水源控制决定生存时间"
+    
+      - id: 9
+        phase: "士气维持"
+        description: "长期围困导致守军士气低落。"
+        rank_impact:
+          soldier: "{{user}}只能依靠个人意志"
+          sergeant: "{{user}}可以鼓舞小队士气"
+          officer: "{{user}}能组织激励活动"
+          general: "{{user}}可以决定是否散布假消息鼓舞士气"
+        level_impact:
+          low: "容易受低落情绪影响"
+          medium: "能保持基本士气"
+          high: "能在逆境中鼓舞全军"
+        consequence: "士气崩溃将不战自败"
+    
+      - id: 10
+        phase: "突围决策"
+        description: "守城无望，需要决定突围方案。"
+        rank_impact:
+          soldier: "{{user}}只能跟随突围部队"
+          sergeant: "{{user}}可以带领小队突围"
+          officer: "{{user}}能组织有序突围"
+          general: "{{user}}可以决定突围时机和路线"
+        level_impact:
+          low: "在突围中容易掉队"
+          medium: "能保持队形突围"
+          high: "能选择最佳突围路线减少损失"
+        consequence: "突围是绝望中的最后选择"
+    
+    siege_defense_combat_rules:
+      - "城墙提供巨大防御优势，守方通常能以少胜多"
+      - "熟悉地形，可以充分利用街巷进行纵深防御"
+      - "物资储备决定守城持久力"
+      - "民心士气与军事防御同等重要"
+      - "内奸和叛乱可能从内部攻破防御"
+      - "水源和粮食是守城关键资源"
+      - "天气影响攻守双方，但守方适应更好"
+      - "时间通常站在守方一边（等待援军或敌军撤退）"
+    
+    siege_defense_battlefield_examples:
+      - example_id: 1
+        rank: "{{get_message_variable::stat_data.角色.部队.指挥官属性.玩家军衔}}==0"
+        level: "{{get_message_variable::stat_data.角色.状态.等级}}<=9"
+        phase: "城墙防御"
+        situation: |
+          {{user}}紧握着弓箭的手在颤抖，城下是密密麻麻的敌军。作为新兵，{{user}}第一次看到如此规模的攻城部队。箭袋里的箭矢所剩无几，而敌军的云梯已经搭上城墙。{{user}}身边的战友不断中箭倒下，但{{user}}必须坚守这个垛口，否则敌军就会从这里突破。
+    
+      - example_id: 2
+        rank: "{{get_message_variable::stat_data.角色.部队.指挥官属性.玩家军衔}}==1"
+        level: "{{get_message_variable::stat_data.角色.状态.等级}}>=9 && {{get_message_variable::stat_data.角色.状态.等级}}<=13 "
+        phase: "城门坚守"
+        previous_choice: "用石块加固城门"
+        consequence: |
+          {{user}}的加固确实延缓了敌军突破，但现在城门内侧堆满石块，无法快速打开。更糟的是，侦察兵报告城内出现叛乱分子正在接近城门。{{user}}的小队疲惫不堪，弹药即将耗尽。{{user}}必须决定：是冒险清理石块准备突围，还是死守到最后一刻。
+    
+      - example_id: 3
+        rank: "{{get_message_variable::stat_data.角色.部队.指挥官属性.玩家军衔}}==2"
+        level: "{{get_message_variable::stat_data.角色.状态.等级}}>=13"
+        phase: "物资调配"
+        previous_choice: "严格配给节约物资"
+        consequence: |
+          {{user}}的严格配给延长了守城时间，但也引发了民怨。现在城内出现抢劫粮仓的暴民，守军因饥饿开始出现逃兵。敌军趁机加强了心理攻势，散布援军不会来的消息。{{user}}必须决定：是镇压暴动维持秩序，还是开仓放粮争取民心。
+    
+      - example_id: 4
+        rank: "{{get_message_variable::stat_data.角色.部队.指挥官属性.玩家军衔}}==3"
+        level: "{{get_message_variable::stat_data.角色.状态.等级}}>=13"
+        phase: "突围决策"
+        previous_choice: "拒绝敌军劝降"
+        consequence: |
+          {{user}}的坚定现在换来了残酷现实——援军确实不会来了。城内粮尽援绝，瘟疫开始蔓延，守军战斗力不足三成。敌军给出了最后通牒：明日攻城，不留活口。{{user}}站在城楼上，必须决定：是组织全军做最后一搏，还是尝试谈判为部下争取生机。
+  
+  - terrain: "海战"
+    naval_battlefield_events:
+      - id: 1
+        phase: "接舷战"
+        description: "双方舰船靠近，士兵准备跳帮作战。"
+        rank_impact:
+          soldier: "{{user}}只能在甲板上等待接敌"
+          sergeant: "{{user}}可以指挥小队准备跳帮"
+          officer: "{{user}}能组织多方向接舷攻击"
+          general: "{{user}}可以决定接舷战时机和目标"
+        level_impact:
+          low: "在摇晃甲板上容易失衡"
+          medium: "能稳定完成接舷作战"
+          high: "能选择最佳接舷角度和时机"
+        consequence: "接舷战胜利可俘获敌舰"
+    
+      - id: 2
+        phase: "炮战对决"
+        description: "舰船火炮相互轰击，海面水柱冲天。"
+        rank_impact:
+          soldier: "{{user}}只能操作指定火炮"
+          sergeant: "{{user}}可以指挥炮组瞄准射击"
+          officer: "{{user}}能协调全舰火力分配"
+          general: "{{user}}可以决定舰队炮战战术"
+        level_impact:
+          low: "炮术生疏命中率低"
+          medium: "能准确命中大型目标"
+          high: "能精准打击敌舰要害"
+        consequence: "炮战优势可决定海战胜负"
+    
+      - id: 3
+        phase: "机动抢占"
+        description: "舰队争夺有利位置和风向。"
+        rank_impact:
+          soldier: "{{user}}只能执行帆缆操作"
+          sergeant: "{{user}}可以指挥甲板作业"
+          officer: "{{user}}能规划单舰机动路线"
+          general: "{{user}}可以指挥整个舰队阵型变换"
+        level_impact:
+          low: "在复杂机动中容易晕船"
+          medium: "能适应海上机动保持战斗力"
+          high: "能预判风向变化抢占先机"
+        consequence: "位置优势可让火力倍增"
+    
+      - id: 4
+        phase: "火攻危机"
+        description: "敌军使用火船攻击，海面一片火海。"
+        rank_impact:
+          soldier: "{{user}}只能尽力扑灭火势"
+          sergeant: "{{user}}可以组织防火小组"
+          officer: "{{user}}能指挥舰船规避火船"
+          general: "{{user}}可以决定是否牺牲部分舰船"
+        level_impact:
+          low: "在火灾面前容易恐慌"
+          medium: "能有效执行防火措施"
+          high: "能利用风向避免火势蔓延"
+        consequence: "火攻可能瞬间改变战局"
+    
+      - id: 5
+        phase: "登船防御"
+        description: "敌军试图登船，守军全力抵抗。"
+        rank_impact:
+          soldier: "{{user}}只能在指定位置防御"
+          sergeant: "{{user}}可以组织小队防守关键区域"
+          officer: "{{user}}能调配兵力填补防线"
+          general: "{{user}}可以决定是否放弃受损舰船"
+        level_impact:
+          low: "在登船战中容易退缩"
+          medium: "能有效执行防御任务"
+          high: "能预判敌军登船点提前部署"
+        consequence: "成功防御可保全舰船"
+    
+      - id: 6
+        phase: "风暴来袭"
+        description: "海上风暴突然降临，威胁所有舰船。"
+        rank_impact:
+          soldier: "{{user}}只能抓紧固定物求生"
+          sergeant: "{{user}}可以组织甲板安全作业"
+          officer: "{{user}}能指挥舰船应对风暴"
+          general: "{{user}}可以决定舰队疏散或集结"
+        level_impact:
+          low: "在风暴中完全无助"
+          medium: "能执行基本风暴应对"
+          high: "能利用风暴作为战术掩护"
+        consequence: "风暴可能造成非战斗损失"
+    
+      - id: 7
+        phase: "浅滩危机"
+        description: "舰队误入浅滩区域，舰船面临搁浅。"
+        rank_impact:
+          soldier: "{{user}}只能执行测深任务"
+          sergeant: "{{user}}可以组织导航小组"
+          officer: "{{user}}能规划安全航线"
+          general: "{{user}}可以决定是否冒险通过浅滩"
+        level_impact:
+          low: "在浅滩航行中容易失误"
+          medium: "能识别浅滩危险"
+          high: "能利用浅滩设下陷阱"
+        consequence: "浅滩可成为天然防御"
+    
+      - id: 8
+        phase: "追击作战"
+        description: "敌军溃退，舰队展开追击。"
+        rank_impact:
+          soldier: "{{user}}只能操作追击所需设备"
+          sergeant: "{{user}}可以指挥小队准备接舷"
+          officer: "{{user}}能组织有序追击"
+          general: "{{user}}可以决定追击深度和目标"
+        level_impact:
+          low: "在追击中容易脱离编队"
+          medium: "能保持追击队形"
+          high: "能预判敌军逃跑路线设伏"
+        consequence: "追击可扩大战果但也存在风险"
+    
+      - id: 9
+        phase: "夜间海战"
+        description: "战斗在黑暗的海面上持续。"
+        rank_impact:
+          soldier: "{{user}}只能依靠微弱灯光操作"
+          sergeant: "{{user}}可以组织夜间警戒"
+          officer: "{{user}}能制定夜战特殊战术"
+          general: "{{user}}可以利用夜色掩护重要行动"
+        level_impact:
+          low: "在夜战中容易误判目标"
+          medium: "能适应夜战环境"
+          high: "能利用夜色实施奇袭"
+        consequence: "夜战充满不确定性"
+    
+      - id: 10
+        phase: "旗舰危机"
+        description: "舰队旗舰遭到重点攻击，指挥系统受威胁。"
+        rank_impact:
+          soldier: "{{user}}只能保卫旗舰安全"
+          sergeant: "{{user}}可以组织旗舰防御"
+          officer: "{{user}}能调动舰船保护旗舰"
+          general: "{{user}}可以决定是否转移旗舰"
+        level_impact:
+          low: "在危机中容易混乱"
+          medium: "能执行旗舰保护任务"
+          high: "能利用危机设下反制陷阱"
+        consequence: "旗舰安全影响整个舰队士气"
+    
+    naval_combat_rules:
+      - "风向和洋流对机动影响巨大"
+      - "T字横头战术可最大化火力输出"
+      - "舰船类型差异显著（战列舰、巡洋舰、护卫舰等）"
+      - "海上补给困难，持久作战能力有限"
+      - "视野受海平面曲率限制"
+      - "天气变化剧烈，可能瞬间改变海况"
+      - "浅滩和礁石区域极其危险"
+      - "通信依赖旗语和信号灯，易受干扰"
+    
+    naval_battlefield_examples:
+    
+      - example_id: 1
+        rank: "{{get_message_variable::stat_data.角色.部队.指挥官属性.玩家军衔}}==0"
+        level: "{{get_message_variable::stat_data.角色.状态.等级}}<=9"
+        phase: "炮战对决"
+        situation: |
+          {{user}}的耳朵在持续轰鸣，舰炮的怒吼让{{user}}几乎失聪。作为新水手，{{user}}第一次经历如此激烈的海战。敌舰的炮弹不断落在周围，激起的水柱让甲板湿滑难行。{{user}}负责的火炮刚刚有两人伤亡，现在{{user}}必须独自完成装填和瞄准。
+    
+      - example_id: 2
+        rank: "{{get_message_variable::stat_data.角色.部队.指挥官属性.玩家军衔}}==1"
+        level: "{{get_message_variable::stat_data.角色.状态.等级}}>=9 && {{get_message_variable::stat_data.角色.状态.等级}}<=13 "
+        phase: "接舷战"
+        previous_choice: "主动发起跳帮作战"
+        consequence: |
+          {{user}}的跳帮作战成功了，但现在{{user}}和小队被困在敌舰甲板上。敌舰水手从四面八方涌来，而{{user}}的母舰因风向变化无法及时支援。更糟的是，敌舰底舱传来爆炸声，这艘船可能正在下沉。{{user}}必须决定：是继续战斗俘获敌舰，还是立即撤退避免陪葬。
+    
+      - example_id: 3
+        rank: "{{get_message_variable::stat_data.角色.部队.指挥官属性.玩家军衔}}==2"
+        level: "{{get_message_variable::stat_data.角色.状态.等级}}>=13"
+        phase: "风暴来袭"
+        previous_choice: "冒险穿越风暴区"
+        consequence: |
+          {{user}}的冒险让舰队成功绕到了敌军侧翼，但代价惨重。三艘舰船在风暴中受损，一艘护卫舰沉没。现在{{user}}的舰队分散在广阔海域，而敌军主力正在快速接近。{{user}}站在摇晃的舰桥上，必须决定：是立即集结迎战，还是继续分散躲避。
+    
+      - example_id: 4
+        rank: "{{get_message_variable::stat_data.角色.部队.指挥官属性.玩家军衔}}==3"
+        level: "{{get_message_variable::stat_data.角色.状态.等级}}>=13"
+        phase: "旗舰危机"
+        previous_choice: "旗舰带头冲锋"
+        consequence: |
+          {{user}}的英勇确实鼓舞了全军士气，但现在旗舰成为众矢之的。敌军的全部火力都集中在{{user}}的座舰上，船体多处受损，炮位损失过半。更糟的是，通讯系统被毁，{{user}}失去了对舰队的指挥。现在{{user}}必须决定：是继续坚持等待援军，还是转移旗舰避免全军崩溃。
+
+# 复合事件表（结合多个因素的特殊事件）
+complex_events:
+  - name: "英雄时刻"
+    trigger_condition: "{{get_message_variable::stat_data.角色.状态.等级}}>=15 && {{get_message_variable::stat_data.角色.部队.状态数值.士气值}}<30"
+    description: "在绝境中，{{user}}的英勇行为激励了全军。{{user}}高举战旗，率先冲向敌阵，身后士兵们重新振作，发出震天战吼。"
+    consequence: "部队士气立即恢复至70%，获得'英雄光环'状态（全军攻击+20%，防御+15%），持续至战斗结束"
+    variable_update_example: |
+      <UpdateVariable>
+        <Analysis>
+          - 计算时间流逝：战斗持续2小时
+          - 是否允许剧烈更新：是，因为是特殊英雄事件
+          - 分析变量：英雄时刻触发，士气大幅恢复并添加英雄光环效果
+        </Analysis>
+        _.set('角色.部队.状态数值.士气值', 70);//英雄时刻士气恢复
+        _.assign('角色.部队.当前状态.临时效果', '英雄光环', {
+          "效果": "全军攻击+20%，防御+15%",
+          "持续": "至战斗结束"
+        });//添加英雄光环状态
+      </UpdateVariable>
+  
+  - name: "指挥失误"
+    trigger_condition: "{{get_message_variable::stat_data.角色.部队.指挥官属性.玩家军衔}}>=2 && 决策检定失败"
+    description: "{{user}}的一个错误判断导致部队陷入不利位置。敌军立即抓住机会，加强了对薄弱环节的攻击，阵线开始动摇。"
+    consequence: "相关部队士气-30%，遭受额外伤亡，玩家声望下降"
+    variable_update_example: |
+      <UpdateVariable>
+        <Analysis>
+          - 计算时间流逝：战斗持续1小时
+          - 是否允许剧烈更新：是，因为是指挥失误事件
+          - 分析变量：指挥失误导致士气下降和部队损失
+        </Analysis>
+        _.add('角色.部队.状态数值.士气值', -30);//指挥失误士气下降
+        _.add('角色.部队.核心属性.部队规模', -50);//部队损失50人
+        _.add('角色.部队.状态数值.体力值', -10);//体力消耗增加
+      </UpdateVariable>
+  
+  - name: "地形利用大师"
+    trigger_condition: "{{get_message_variable::stat_data.角色.状态.等级}}>=12 && 成功识别地形优势"
+    description: "{{user}}敏锐地发现了地形的战术价值，迅速调整部署。部队占据有利位置，使得敌军进攻变得极为困难。"
+    consequence: "获得'地形优势'状态（防御+25%，远程攻击精度+20%），持续至离开该地形"
+    variable_update_example: |
+      <UpdateVariable>
+        <Analysis>
+          - 计算时间流逝：战斗持续30分钟
+          - 是否允许剧烈更新：是，因为是战术优势事件
+          - 分析变量：成功利用地形获得战术优势
+        </Analysis>
+        _.assign('角色.部队.当前状态.临时效果', '地形优势', {
+          "效果": "防御+25%，远程攻击精度+20%",
+          "持续": "至离开该地形"
+        });//添加地形优势状态
+        _.add('角色.部队.状态数值.士气值', 15);//战术成功士气提升
+      </UpdateVariable>
+  
+  - name: "补给危机"
+    trigger_condition: "{{get_message_variable::stat_data.角色.部队.状态数值.补给状态}}<20 && 战斗持续时间>5回合"
+    description: "部队补给严重不足，士兵们饥饿疲惫，箭矢和弹药所剩无几。继续战斗的风险极大。"
+    consequence: "全军攻击力-40%，防御力-30%，士气持续下降，必须在下回合内做出撤退或决战决策"
+    variable_update_example: |
+      <UpdateVariable>
+        <Analysis>
+          - 计算时间流逝：战斗持续6小时
+          - 是否允许剧烈更新：是，因为是补给危机事件
+          - 分析变量：补给严重不足导致战斗力下降
+        </Analysis>
+        _.assign('角色.部队.当前状态.临时效果', '补给危机', {
+          "效果": "攻击力-40%，防御力-30%，士气持续下降",
+          "持续": "直到补给恢复"
+        });//添加补给危机状态
+        _.add('角色.部队.状态数值.士气值', -25);//补给不足士气下降
+        _.add('角色.部队.状态数值.体力值', -30);//体力严重消耗
+      </UpdateVariable>
+
+  - name: "精锐突击"
+    trigger_condition: "{{get_message_variable::stat_data.角色.状态.等级}}>=10 && {{get_message_variable::stat_data.角色.部队.核心属性.训练等级}}>=7"
+    description: "{{user}}亲自率领精锐部队发起突击，如同一把尖刀直插敌军心脏。"
+    consequence: "造成敌军阵线混乱，士气-20%，获得'突击优势'状态（移动速度+30%，攻击力+15%）"
+    variable_update_example: |
+      <UpdateVariable>
+        <Analysis>
+          - 计算时间流逝：战斗持续45分钟
+          - 是否允许剧烈更新：是，因为是精锐突击事件
+          - 分析变量：精锐突击成功获得战术优势
+        </Analysis>
+        _.assign('角色.部队.当前状态.临时效果', '突击优势', {
+          "效果": "移动速度+30%，攻击力+15%",
+          "持续": "至本次突击结束"
+        });//添加突击优势状态
+        _.add('角色.累计经验值', 150);//战斗经验获得
+        _.add('角色.部队.状态数值.士气值', 10);//突击成功士气提升
+      </UpdateVariable>
+
+  - name: "天气突变"
+    trigger_condition: "随机产生"
+    description: "战场天气突然恶化，狂风暴雨/浓雾大雪改变了战场态势。"
+    consequence: "所有单位视野-50%，远程攻击精度-30%，近战单位受影响较小"
+    variable_update_example: |
+      <UpdateVariable>
+        <Analysis>
+          - 计算时间流逝：天气突变持续1小时
+          - 是否允许剧烈更新：是，因为是天气事件
+          - 分析变量：天气恶化影响战斗条件
+        </Analysis>
+        _.assign('角色.部队.当前状态.临时效果', '恶劣天气', {
+          "效果": "视野-50%，远程攻击精度-30%",
+          "持续": "至天气好转"
+        });//添加恶劣天气效果
+        _.add('角色.部队.状态数值.体力值', -15);//恶劣天气体力消耗
+      </UpdateVariable>
+
+output_format:
+  narrative_integration: "事件描述应自然融入叙事正文，不额外标注。"
+  consequence_handling: "后果以隐晦方式提及，如状态变化、伤亡或阶段转换，不在正文中突出显示。"
+  variable_update: "变量更新在<UpdateVariable>中处理。"
+  factor_display: "实力对比、军衔和等级影响应在事件描述中自然体现，不单独列出。"
+
+</battlefield_event_protocol>
+
+#待更新mvu:
+需要新增
+角色.军衔，内容为"士兵","队长", "骑士团长"，四选一 "军团长"，默认为士兵，提升军衔时修改（还需要提升军衔的mvu更新方法）
+角色.部队，新增内容模板如下，默认为空：
+角色.在军队中，内容为true/false，默认false
+部队模板，格式如下：
+{
+  "部队对象": {
+    "$meta": {
+      "extensible": false
+    },
+    "核心属性": {
+      "$meta": {
+        "extensible": false
+      },
+      "部队规模": 1000,
+      "训练等级": 5,
+      "兵种构成": "$meta": {
+        "extensible": true
+      },
+    },
+    "状态数值": {
+      "$meta": {
+        "extensible": false
+      },
+      "士气值": 70,
+      "补给状态": 80,
+      "体力值": 90
+    },
+    "指挥官属性": {
+      "$meta": {
+        "extensible": false
+      },
+      "玩家军衔": 1,
+      "玩家等级": 10
+    },
+    "地形适应性": {
+      "$meta": {
+        "extensible": false
+      },
+      "平原": 5,
+      "森林": 5,
+      "山地": 5,
+      "攻城": 5,
+      "守城": 5
+    },
+    "当前状态": {
+      "$meta": {
+        "extensible": false
+      },
+      "地形": "平原",
+      "阶段": "相持",
+      "临时效果": []
+    },
+    "掷骰系统": {
+      "$meta": {
+        "extensible": false
+      },
+      "说明": "使用d100系统，计算总修正值后与掷骰结果比较，≤修正值即为成功",
+      "基础成功率": 50,
+      "总修正公式": "基础成功率 + (士气值-50)/2.5 + (玩家等级-10)/2 + 玩家军衔*5 + (当前地形适应性-5)*4 + (补给状态-50)/3.3 + (体力值-50)/5 + (训练等级-5)*2",
+      "计算示例": "基础50 + 士气8 + 等级0 + 军衔5 + 地形0 + 补给9 + 体力8 + 训练0 = 80，掷骰≤80成功"
+    },
+    "军衔映射": {
+      "$meta": {
+        "extensible": false
+      },
+      "0": "士兵",
+      "1": "士官",
+      "2": "军官",
+      "3": "将军"
+    },
+    "地形映射": {
+      "$meta": {
+        "extensible": false
+      },
+      "0": "平原",
+      "1": "森林",
+      "2": "山地",
+      "3": "攻城",
+      "4": "守城"
+    },
+    "阶段映射": {
+      "$meta": {
+        "extensible": false
+      },
+      "0": "进攻",
+      "1": "防守",
+      "2": "相持",
+      "3": "撤退"
+    }
+  }
+}
