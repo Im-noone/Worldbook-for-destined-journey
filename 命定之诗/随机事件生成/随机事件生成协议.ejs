@@ -1,25 +1,14 @@
-{{setvar::random_event_trigger::
-随机事件触发?是，参考<random_event_trigger_protocol>}}
+<%_ {
+  let inMilitary = getvar('stat_data.角色.在军队中', { default: false });
+  let random_value = _.random(1, 100);
+
+  // 用 setvar 会污染变量，这里要改的太多了，有些看不懂你要干什么。你应该自己重写！
+  // 另外 AI 用到了一些错误操作和不存在的变量，可以说这个文档是完全不可用的
+  let random_event_trigger = false;
+  let event_border_generate = false;
+_%>
 
 <random_event_trigger_protocol>
-# 随机事件触发总协议
-# 本协议统一管理游戏中各类随机事件的触发逻辑
-# 事件按触发概率从小到大排列，一旦触发则后续事件不触发
-
-event_priority_check:
-  description: "按概率从小到大顺序检查事件触发，使用单次随机数判定"
-  trigger_mechanism: "生成随机数后依次比较各事件概率阈值"
-  execution_order: "一旦某个事件触发，立即终止后续检查"
-
-  probability_calculation:
-    method: "使用统一随机数生成函数，生成0-100的随机值"
-    formula: "random_value = `roll:1d100`"
-    comparison: "随机数小于事件概率阈值则触发"
-
-<%_ let randomvalue = {{roll 1d100}}  %>
-{{setvar::trigger_random_event::false}}
-{{setvar::event_border_generate::false}}
-
 event_generation_steps:
   奇遇事件:
     <%_ if (getvar('trigger_random_event') === false && random_value < 2 && getvar('stat_data.角色.状态.等级') > 13) { _%>
@@ -41,7 +30,7 @@ event_generation_steps:
     <%_ } _%>
 
   随机遭遇战:
-    <%_ if (getvar('trigger_random_event') === false && random_value < 6 && !getvar('stat_data.角色.在军队中') && !getvar('stat_data.角色.在关键对话中') && !getvar('stat_data.角色.在战斗中')) { _%>
+    <%_ if (getvar('trigger_random_event') === false && random_value < 6 && !getvar('stat_data.角色.在军队中')) { _%>
       {{setvar::trigger_random_event::true}}
       {{setvar::event_border_generate::true}}
       {{setvar::current_event_type::"随机遭遇战"}}
@@ -179,3 +168,4 @@ output_format:
   display_requirement: "每个触发的事件必须使用对应的展示栏格式显示"
 
 </random_event_trigger_protocol>
+<%_ } _%>
