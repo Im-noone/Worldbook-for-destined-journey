@@ -18,15 +18,4 @@
   - "1": string. 队长 sergeant
   - "2": string. 骑士团长 officer
   - "3": string. 军团长 general
-地形映射关系:
-  - "0": string. 平原
-  - "1": string. 森林
-  - "2": string. 山地
-  - "3": string. 攻城
-  - "4": string. 守城
-阶段映射关系:
-  - "0": string. 进攻
-  - "1": string. 防守
-  - "2": string. 相持
-  - "3": string. 撤退
 </army_number_represent_protocol>

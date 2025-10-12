@@ -1,0 +1,187 @@
+<random_event_trigger_protocol>
+# 随机事件触发总协议
+# 本协议统一管理游戏中各类随机事件的触发逻辑
+# 事件按触发概率从小到大排列，一旦触发则后续事件不触发
+
+event_priority_check:
+  description: "按概率从小到大顺序检查事件触发，使用单次随机数判定"
+  trigger_mechanism: "生成随机数后依次比较各事件概率阈值"
+  execution_order: "一旦某个事件触发，立即终止后续检查"
+
+  probability_calculation:
+    method: "使用统一随机数生成函数，生成0-100的随机值"
+    formula: "random_value = roll:1d100"
+    comparison: "随机数小于事件概率阈值则触发"
+
+event_generation_steps:
+  奇遇事件:
+    <%if {{getvar::trigger_random_event}} == false &&  random_value < 2 && getvar('stat_data.角色.状态.等级') > 13 { %>
+      {{setvar::trigger_random_event::true}}
+      {{setvar::event_border_generate::true}}
+      {{setvar::current_event_type::"奇遇事件"}}
+      generate_step:
+        - step1: "特殊区域判定 - 确定奇遇发生的超自然区域类型"
+        - step2: "概念抽取 - 从时空、元素、概念、神性等抽象领域随机选择"
+        - step3: "难度适配 - 基于玩家等级和生命层级调整奇遇挑战"
+        - step4: "叙事构建 - 生成超越常规现实的描述和体验"
+        - step5: "奖励生成 - 提供概念性、法则性或神性相关的独特奖励"
+      reference_protocol: "<legend_event_protocol>"
+    <% } %>
+
+  随机遭遇战:
+    <%if {{getvar::trigger_random_event}} == false &&  random_value < 6 && !getvar('stat_data.角色.在军队中') && %> 当前不在关键对话或战斗中 <% { %>
+      {{setvar::trigger_random_event::true}}
+      {{setvar::event_border_generate::true}}
+      {{setvar::current_event_type::"随机遭遇战"}}
+      generate_step:
+        - step1: "玩家状态评估 - 分析等级、装备、技能、资源状态"
+        - step2: "环境风险评估 - 根据位置确定遭遇类型和敌人种类"
+        - step3: "难度调整 - 调整至'有挑战性但可完成'水平"
+        - step4: "敌人生成 - 生成1-3个匹配等级的完整敌人档案"
+        - step5: "战斗场景生成 - 创建符合环境的战斗场地"
+        - step6: "战斗执行 - 进入<combat_round_protocol>流程"
+        - step7: "结果判定 - 根据战斗表现计算奖励"
+      reference_protocol: "<individual_encounter_protocol>"
+    <% } %>
+
+  战役事件:
+    <%if {{getvar::trigger_random_event}} == false &&  random_value < 6 && getvar('stat_data.角色.在军队中') && getvar('stat_data.角色.军队状态') in ['行军', '驻扎'] { %>
+      {{setvar::trigger_random_event::true}}
+      {{setvar::event_border_generate::true}}
+      {{setvar::current_event_type::"战役事件"}}
+          
+      generate_step:
+        - step1: "战场环境评估 - 确定地形类型和优劣势"
+        - step2: "实力对比分析 - 计算敌我双方实力比值"
+        - step3: "玩家状态判定 - 根据军衔和等级确定决策权重"
+        - step4: "阶段与士气判定 - 确定当前战斗阶段和士气水平"
+        - step5: "事件触发 - 从当前地形事件表中随机选择"
+        - step6: "难度修正 - 根据实际情况调整事件难度"
+        - step7: "事件叙述 - 生成50-150字战场描述"
+        - step8: "后果生成 - 提供阶段变化、状态调整等后果"
+      reference_protocol: "<battlefield_event_protocol>"
+    <% } %>
+
+  任务型随机事件:
+    <%if {{getvar::trigger_random_event}} == false &&  random_value < 15 && %> 当前不在关键对话或战斗中 <% { %>
+      {{setvar::trigger_random_event::true}}
+      {{setvar::event_border_generate::true}}
+      {{setvar::current_event_type::"任务型随机事件"}}
+      generate_step:
+        - step1: "区域判定 - 确定角色所在区域类型及子区域"
+        - step2: "势力关联 - 根据区域确定可能涉及的势力类型"
+        - step3: "任务触发 - 从对应区域任务表中随机选择"
+        - step4: "难度适配 - 基于角色等级和位置调整任务难度"
+        - step5: "线索呈现 - 生成50-200字任务引子描述"
+        - step6: "任务面板生成 - 调用<任务与委托生成规则>"
+      reference_protocol: "<task_generation_protocol>"
+    <% } %>
+
+  王国战争事件:
+    <%if {{getvar::trigger_random_event}} == false &&  random_value < 25 && getvar('stat_data.角色.状态.等级') >= 8 { %>
+      {{setvar::trigger_random_event::true}}
+      {{setvar::event_border_generate::true}}
+      {{setvar::current_event_type::"王国战争事件"}}
+          <% } %>
+      generate_step:
+        - step1: "爵位状态检查 - 确认角色是否拥有爵位"
+        - step2: "位置情境判定 - 区分安全位置与危险位置"
+        - step3: "事件类型选择 - 基于爵位和位置生成对应战争事件"
+        - step4: "势力关系影响 - 考虑友方、敌方或中立势力介入"
+        - step5: "叙事集成 - 将战争信息自然融入对话或环境"
+      reference_protocol: "<kingdom_war_protocol>"
+
+  
+
+  沉浸感增强事件:
+    
+    <%if {{getvar::trigger_random_event}} == false &&  random_value < 80 && %> 当前不在关键对话或战斗中 <% { %>
+      {{setvar::trigger_random_event::true}}
+      {{setvar::event_border_generate::false}}
+      {{setvar::current_event_type::"沉浸感增强事件"}}
+      generate_step:
+        - step1: "位置判定 - 确定角色所在的大区域类型"
+        - step2: "子区域判定 - 随机选择或基于上下文确定子区域"
+        - step3: "事件触发 - 从对应区域事件表中随机选择"
+        - step4: "特殊位置检查 - 考虑季节性、种族或势力因素"
+        - step5: "事件叙述 - 生成50-150字生动感官描述"
+      reference_protocol: "<immersion_enhancement_protocol>"
+    <% } %>
+
+execution_flow:
+  - step1: "环境状态检查 - 确认是否允许触发任何随机事件"
+  generate_step:
+        - step1: "随机数生成 - 统一生成0-100的随机值"
+    - step2: "顺序检查 - 按概率从小到大依次检查各事件触发条件"
+    - step3: "事件生成 - 第一个满足条件的事件触发并生成"
+    - step4: "流程终止 - 事件触发后立即终止后续检查"
+    - step5: "状态更新 - 通过<UpdateVariable>更新游戏状态"
+
+# 随机事件触发展示栏
+event_display_format:
+  template: |
+    <%if {{getvar::event_border_generate}} == true { %>
+    <div style="
+      border: 2px solid {{border_color}};
+      border-radius: 8px;
+      background: linear-gradient(135deg, {{background_color}}20, {{background_color}}60);
+      padding: 12px;
+      margin: 10px 0;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    ">
+      <div style="display: flex; align-items: center; margin-bottom: 8px;">
+        <span style="font-size: 24px; margin-right: 10px;">{{icon}}</span>
+        <span style="font-weight: bold; font-size: 18px; color: {{text_color}};">{{event_type}}</span>
+      </div>
+      <div style="
+        border-top: 1px solid {{border_color}}40;
+        padding-top: 8px;
+        font-size: 14px;
+        color: {{text_color}}90;
+      ">
+        {{event_description}}
+      </div>
+    </div>
+    {{setvar::event_border_generate::false}}
+    <% } %>
+  
+  display_configs:
+    奇遇事件:
+      background_color: "#6A0DAD"
+      border_color: "#8A2BE2"
+      text_color: "#E6E6FA"
+      icon: "🔮"
+    
+    随机遭遇战:
+      background_color: "#8B0000" 
+      border_color: "#DC143C"
+      text_color: "#FFE4E1"
+      icon: "⚔️"
+    
+    任务型随机事件:
+      background_color: "#1E90FF"
+      border_color: "#4169E1"
+      text_color: "#F0F8FF"
+      icon: "📜"
+    
+    王国战争事件:
+      background_color: "#DAA520"
+      border_color: "#FFD700"
+      text_color: "#FFF8DC"
+      icon: "🏰"
+    
+    战役事件:
+      background_color: "#2F4F4F"
+      border_color: "#708090"
+      text_color: "#F5F5F5"
+      icon: "🛡️"
+
+output_format:
+  event_trigger: "事件触发应自然融入叙事流程，不显式标注概率计算"
+  narrative_integration: "所有事件描述必须符合当前环境和剧情背景"
+  variable_handling: "状态变化统一在<UpdateVariable>中处理"
+  protocol_reference: "事件生成严格遵循对应协议的标准流程"
+  display_requirement: "每个触发的事件必须使用对应的展示栏格式显示"
+
+</random_event_trigger_protocol>
