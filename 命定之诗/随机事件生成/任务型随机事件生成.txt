@@ -5,21 +5,6 @@ core_rules:
   reward_principle: "任务线索本身不提供实质奖励，仅作为引子。实际奖励在任务完成后按公会标准发放"
   narrative_integration: "任务生成必须符合当前区域特色、势力和历史背景，避免具体名称和细节，保持开放性"
 
-task_generation_step:
-  - step1: "区域判定"
-    description: "确定角色所在的区域类型（城镇、野外、地下）及具体子区域"
-  - step2: "势力关联"
-    description: "根据区域确定可能涉及的势力类型（公会、国家、种族等）"
-  - step3: "任务触发"
-    description: "进行{{roll:1d20}}判定，从对应区域的任务表中随机选择一项"
-  - step4: "难度适配"
-    description: "基于角色等级和当前位置，调整任务难度描述"
-  - step5: "线索呈现"
-    description: "生成一段50-200字的任务引子描述，包含任务背景和初始目标，避免具体名称"
-  - step6: "任务面板生成"
-    description: "根据<任务与委托生成规则>生成任务面板信息"
-    
-
 town_tasks:
   - id: 1
     sub_area: "酒馆或旅店"

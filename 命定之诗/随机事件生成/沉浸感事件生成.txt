@@ -5,18 +5,6 @@ core_rules:
   reward_principle: "回报非强制，应低调且合理，如临时增益、少量资源、情报碎片或NPC好感微调。严禁提供装备、永久属性或关键任务物品"
   narrative_integration: "事件描述必须自然融入当前环境和世界观，基于位置类型生成，避免生硬插入"
 
-event_generation_step:
-  - step1: "位置判定"
-    description: "确定角色所在的大区域类型（城镇、野外、地下）"
-  - step2: "子区域判定" 
-    description: "根据大区域，随机选择或基于上下文确定子区域（如酒馆、森林小径等）"
-  - step3: "事件触发"
-    description: "进行{{roll:1d20}}判定，从对应大区域的事件表中随机选择一项"
-  - step4: "特殊位置检查"
-    description: "如果当前环境是特殊位置（如季节性节日、种族聚集地或势力中心），则事件描述或回报可能微调"
-  - step5: "事件叙述"
-    description: "生成一段50-150字的生动描述，强调感官细节（声音、气味、景象）"
-
 town_events:
   - id: 1
     sub_area: "酒馆或旅店"

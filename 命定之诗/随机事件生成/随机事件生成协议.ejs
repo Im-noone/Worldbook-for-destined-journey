@@ -1,163 +1,129 @@
-<%_ {
-  let inMilitary = getvar('stat_data.角色.在军队中', { default: false });
-  let random_value = _.random(1, 100);
-
-  // 用 setvar 会污染变量，这里要改的太多了，有些看不懂你要干什么。你应该自己重写！
-  // 另外 AI 用到了一些错误操作和不存在的变量，可以说这个文档是完全不可用的
-  let random_event_trigger = false;
-  let event_border_generate = false;
-_%>
-
+{{setvar::random_event_trigger::
+是否需要进行随机事件生成？若无→跳过思考
+  若有→严格按照<random_event_trigger_protocol>的generate_step开始在<think></think>中生成事件，禁止跳步，**禁止在正文中掷骰**}}
 <random_event_trigger_protocol>
-event_generation_steps:
-  奇遇事件:
-    <%_ if (getvar('trigger_random_event') === false && random_value < 2 && getvar('stat_data.角色.状态.等级') > 13) { _%>
-      {{setvar::trigger_random_event::true}}
-      {{setvar::event_border_generate::true}}
-      {{setvar::current_event_type::"奇遇事件"}}
-      {{setvar::background_color::"#6A0DAD"}}
-      {{setvar::border_color::"#8A2BE2"}}
-      {{setvar::text_color::"#E6E6FA"}}
-      {{setvar::icon::"🔮"}}
-      {{setvar::event_description::`根据事件内容填充描述`}}
-      generate_step:
-        - step1: "特殊区域判定 - 确定奇遇发生的超自然区域类型"
-        - step2: "概念抽取 - 从时空、元素、概念、神性等抽象领域随机选择"
-        - step3: "难度适配 - 基于玩家等级和生命层级调整奇遇挑战"
-        - step4: "叙事构建 - 生成超越常规现实的描述和体验"
-        - step5: "奖励生成 - 提供概念性、法则性或神性相关的独特奖励"
-      reference_protocol: "<legend_event_protocol>"
-    <%_ } _%>
-
-  随机遭遇战:
-    <%_ if (getvar('trigger_random_event') === false && random_value < 6 && !getvar('stat_data.角色.在军队中')) { _%>
-      {{setvar::trigger_random_event::true}}
-      {{setvar::event_border_generate::true}}
-      {{setvar::current_event_type::"随机遭遇战"}}
-      {{setvar::background_color::"#8B0000"}}
-      {{setvar::border_color::"#DC143C"}}
-      {{setvar::text_color::"#FFE4E1"}}
-      {{setvar::icon::"⚔️"}}
-      {{setvar::event_description::`根据事件内容填充描述`}}
-      generate_step:
-        - step1: "玩家状态评估 - 分析等级、装备、技能、资源状态"
-        - step2: "环境风险评估 - 根据位置确定遭遇类型和敌人种类"
-        - step3: "难度调整 - 调整至'有挑战性但可完成'水平"
-        - step4: "敌人生成 - 生成1-3个匹配等级的完整敌人档案"
-        - step5: "战斗场景生成 - 创建符合环境的战斗场地"
-        - step6: "战利品预设 - 预生成战斗胜利后的奖励"
-      reference_protocol: "<random_encounter_protocol>"
-    <%_ } _%>
-
-  战役事件:
-    <%_ if (getvar('trigger_random_event') === false && random_value < 6 && getvar('stat_data.角色.在军队中') && getvar('stat_data.角色.军队状态') in ['行军', '驻扎']) { _%>
-      {{setvar::trigger_random_event::true}}
-      {{setvar::event_border_generate::true}}
-      {{setvar::current_event_type::"战役事件"}}
-      {{setvar::background_color::"#2F4F4F"}}
-      {{setvar::border_color::"#708090"}}
-      {{setvar::text_color::"#F5F5F5"}}
-      {{setvar::icon::"🛡️"}}
-      {{setvar::event_description::`根据事件内容填充描述`}}
-      generate_step:
-        - step1: "战场环境评估 - 确定地形类型和优劣势"
-        - step2: "实力对比分析 - 计算敌我双方实力比值"
-        - step3: "玩家状态判定 - 根据军衔和等级确定决策权重"
-        - step4: "阶段与士气判定 - 确定当前战斗阶段和士气水平"
-        - step5: "事件触发 - 从当前地形事件表中随机选择"
-        - step6: "难度修正 - 根据实际情况调整事件难度"
-        - step7: "事件叙述 - 生成50-150字战场描述"
-        - step8: "后果生成 - 提供阶段变化、状态调整等后果"
-      reference_protocol: "<battlefield_event_protocol>"
-    <%_ } _%>
-
-  任务型随机事件:
-    <%_ if (getvar('trigger_random_event') === false && random_value < 15 && !getvar('stat_data.角色.在关键对话中') && !getvar('stat_data.角色.在战斗中')) { _%>
-      {{setvar::trigger_random_event::true}}
-      {{setvar::event_border_generate::true}}
-      {{setvar::current_event_type::"任务型随机事件"}}
-      {{setvar::background_color::"#1E90FF"}}
-      {{setvar::border_color::"#4169E1"}}
-      {{setvar::text_color::"#F0F8FF"}}
-      {{setvar::icon::"📜"}}
-      {{setvar::event_description::`根据事件内容填充描述`}}
-      generate_step:
-        - step1: "区域判定 - 确定角色所在区域类型及子区域"
-        - step2: "势力关联 - 根据区域确定可能涉及的势力类型"
-        - step3: "任务触发 - 从对应区域任务表中随机选择"
-        - step4: "难度适配 - 基于角色等级和位置调整任务难度"
-        - step5: "线索呈现 - 生成50-200字任务引子描述"
-        - step6: "任务面板生成 - 调用<任务与委托生成规则>"
-      reference_protocol: "<task_generation_protocol>"
-    <%_ } _%>
-
-  王国战争事件:
-    <%_ if (getvar('trigger_random_event') === false && random_value < 25 && getvar('stat_data.角色.状态.等级') >= 8) { _%>
-      {{setvar::trigger_random_event::true}}
-      {{setvar::event_border_generate::true}}
-      {{setvar::current_event_type::"王国战争事件"}}
-      {{setvar::background_color::"#DAA520"}}
-      {{setvar::border_color::"#FFD700"}}
-      {{setvar::text_color::"#FFF8DC"}}
-      {{setvar::icon::"🏰"}}
-      {{setvar::event_description::`根据事件内容填充描述`}}
-      generate_step:
-        - step1: "爵位状态检查 - 确认角色是否拥有爵位"
-        - step2: "位置情境判定 - 区分安全位置与危险位置"
-        - step3: "事件类型选择 - 基于爵位和位置生成对应战争事件"
-        - step4: "势力关系影响 - 考虑友方、敌方或中立势力介入"
-        - step5: "叙事集成 - 将战争信息自然融入对话或环境"
-      reference_protocol: "<kingdom_war_protocol>"
-    <%_ } _%>
-
-  沉浸感增强事件:
-    <%_ if (getvar('trigger_random_event') === false && random_value < 80 && !getvar('stat_data.角色.在关键对话中') && !getvar('stat_data.角色.在战斗中')) { _%>
-      {{setvar::trigger_random_event::true}}
-      {{setvar::event_border_generate::false}}
-      generate_step:
-        - step1: "位置判定 - 确定角色所在的大区域类型"
-        - step2: "子区域判定 - 随机选择或基于上下文确定子区域"
-        - step3: "事件触发 - 从对应区域事件表中随机选择"
-        - step4: "特殊位置检查 - 考虑季节性、种族或势力因素"
-        - step5: "事件叙述 - 生成50-150字生动感官描述"
-      reference_protocol: "<immersion_enhancement_protocol>"
-    <%_ } _%>
-
 generate_step:
-  - step1: "环境状态检查 - 确认是否允许触发任何随机事件"
-  - step2: "随机数生成 - 统一生成0-100的随机值"
-  - step3: "顺序检查 - 按概率从小到大依次检查各事件触发条件"
-  - step4: "事件生成 - 第一个满足条件的事件触发并生成"
-  - step5: "流程终止 - 事件触发后立即终止后续检查"
-  - step6: "状态更新 - 通过<UpdateVariable>更新游戏状态"
+  - step1: 环境状态检查 - 确认是否允许触发任何随机事件
+  - step2: 事件类型确认 - 当前应触发<% 
+  let random_value = _.random(1, 100); 
+  let trigger_random_event = false;
+  let event_border_generate = false;
+  let current_event_type = "";
+  let event_description = "";
+  if ( trigger_random_event === false && random_value < 2 && getvar('stat_data.角色.状态.等级') > 13) { 
+      trigger_random_event = true
+      event_border_generate = true
+      current_event_type = "奇遇事件"
+      event_description = `根据事件内容填充描述` %>奇遇事件<%
+  } else if ( trigger_random_event === false && random_value < 6 && !getvar('stat_data.角色.在军队中')) {
+      trigger_random_event = true
+      event_border_generate = true
+      current_event_type = "随机遭遇战"
+      event_description = `根据事件内容填充描述` %>随机遭遇战<%
+  } else if ( trigger_random_event === false && random_value < 6 && getvar('stat_data.角色.在军队中') && getvar('stat_data.角色.军队状态') in ['行军', '驻扎']) {
+      trigger_random_event = true
+      event_border_generate = true
+      current_event_type = "战役事件"
+      event_description = `根据事件内容填充描述` %>战役事件<%
+  } else if ( trigger_random_event === false && random_value < 15 && !getvar('stat_data.角色.在关键对话中') && !getvar('stat_data.角色.在战斗中')) {
+      trigger_random_event = true
+      event_border_generate = true
+      current_event_type = "任务型随机事件"
+      event_description = `根据事件内容填充描述` %>任务型随机事件<%
+  } else if ( trigger_random_event === false && random_value < 25 && getvar('stat_data.角色.状态.等级') >= 8) { 
+      trigger_random_event = true
+      event_border_generate = true
+      current_event_type = "王国战争事件"
+      event_description = `根据事件内容填充描述` %>王国战争事件<%
+  } else if ( trigger_random_event === false && random_value < 80 && !getvar('stat_data.角色.在关键对话中') && !getvar('stat_data.角色.在战斗中')) {
+      trigger_random_event = true
+      event_border_generate = false
+      current_event_type = "沉浸感事件" %>沉浸感事件<%
+  } 
+  
+  if (current_event_type === "奇遇事件") { _%>
+  - step3: "参考协议 - <legend_event_protocol>"
+  - step4: "特殊区域判定 - 确定奇遇发生的超自然区域类型"
+  - step5: "掷骰决定事件类型 - 从对应区域事件表中挑选id=`1d20`的模板输出事件"
+  - step6: "难度适配 - 基于玩家等级和生命层级调整奇遇挑战"
+  - step7: "叙事构建 - 生成超越常规现实的描述和体验"
+  - step8: "奖励生成 - 提供概念性、法则性或神性相关的独特奖励"
+  - step9: "按照<random_event_generate_protocol>生成原则和模板生成对应事件"
+
+  <%_ } else if (current_event_type === "随机遭遇战") { _%>
+  - step3: "参考协议 - <random_encounter_protocol>"
+  - step4: "玩家状态评估 - 分析等级、装备、技能、资源状态"
+  - step5: "环境决定 - 根据玩家所处环境决定使用哪个对应生成事件的region_type"
+  - step6: "掷骰决定事件类型 - 从对应区域事件表中挑选id=`1d20`的模板输出事件"
+  - step7: "敌人生成 - 生成事件对应的完整敌人档案"
+  - step8: "战利品预设 - 预生成战斗胜利后的奖励"
+  - step9: "按照<random_event_generate_protocol>生成原则和模板生成对应事件"
+
+  <%_ } else if (current_event_type === "战役事件") { _%>
+  - step3: "参考协议 - <battlefield_event_protocol>"
+  - step4: "综合评估 - 确定地形类型和优劣势，计算敌我双方实力比值，确定当前战斗阶段和士气水平"
+  - step5: "玩家状态判定 - 根据军衔和等级确定决策权重"
+  - step6: "事件生成 - 从对应区域事件表中挑选id=`1d20`的事件模板，根据实际情况调整事件难度"
+  - step7: "事件叙述 - 生成50-150字战场描述"
+  - step8: "后果生成 - 提供阶段变化、状态调整等后果"
+  - step9: "按照<random_event_generate_protocol>生成原则和模板生成对应事件"
+
+  <%_ } else if (current_event_type === "任务型随机事件") { _%>
+  - step3: "参考协议 - <task_generation_protocol>"
+  - step4: "区域判定 - 确定角色所在区域类型及子区域"
+  - step5: "类型关联 - 根据区域，{{user}}财富，爵位，等级等信息确定可能涉及的势力类型，敌人种类等"
+  - step6: "任务触发 - 从对应区域事件表中挑选id=`1d20`的事件模板"
+  - step7: "难度适配 - 基于角色等级和位置调整任务难度"
+  - step8: "线索呈现 - 生成50-200字任务引子描述"
+  - step9: "任务面板生成 - 调用<任务与委托生成规则>生成一个任务委托"
+
+  <%_ } else if ( current_event_type === "王国战争事件") { _%>
+  - step3: "参考协议 - <kingdom_war_protocol>"
+  - step4: "位置情境判定 - 区分安全位置与危险位置"
+  - step5: "事件类型选择 - 基于爵位和位置生成对应战争事件"
+  - step6: "势力关系影响 - 考虑友方、敌方或中立势力介入"
+  - step7: "叙事集成 - 将战争信息自然融入对话或环境"
+  - step8: "任务面板生成 - 调用<任务与委托生成规则>生成一个战争招募任务"
+  
+  <%_ } else if (current_event_type === "沉浸感事件") { _%>
+  - step3: "参考协议 - <immersion_enhancement_protocol>"
+  - step4: "位置判定 - 确定角色所在的大区域类型"
+  - step5: "子区域判定 - 随机选择或基于上下文确定子区域"
+  - step6: "模板选择 - 从对应区域事件表中挑选id=`1d20`的事件作为模板"
+  - step7: "特殊位置检查 - 考虑季节性、种族或势力因素"
+  - step8: "事件叙述 - 根据模板生成50-150字生动感官描述，自然融入正文中,**不生成html包裹的文字**"
+  <%_ } else { _%>
+  - step4: 不生成随机事件
+  <%_ } _%>
 
 # 随机事件触发展示栏
 event_display_format:
   template: |
     <%_ if (getvar('event_border_generate') === true) { _%>
     <div style="
-      border: 2px solid {{getvar('border_color')}};
+      border: 2px solid #FFD700;
       border-radius: 8px;
-      background: linear-gradient(135deg, {{getvar('background_color')}}20, {{getvar('background_color')}}60);
+      background: linear-gradient(135deg, #DAA52020, #DAA52060);
       padding: 12px;
       margin: 10px 0;
       box-shadow: 0 4px 8px rgba(0,0,0,0.2);
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     ">
       <div style="display: flex; align-items: center; margin-bottom: 8px;">
-        <span style="font-size: 24px; margin-right: 10px;">{{getvar('icon')}}</span>
-        <span style="font-weight: bold; font-size: 18px; color: {{getvar('text_color')}};">{{getvar('current_event_type')}}</span>
+        <span style="font-size: 24px; margin-right: 10px;">`添加合适图标icon`</span>
+        <span style="font-weight: bold; font-size: 18px; color: #FFF8DC;">getvar('current_event_type')</span>
       </div>
       <div style="
-        border-top: 1px solid {{getvar('border_color')}}40;
+        border-top: 1px solid #FFD70040;
         padding-top: 8px;
         font-size: 14px;
-        color: {{getvar('text_color')}}90;
+        color: #FFF8DC90;
       ">
-        {{getvar('event_description')}}
+        getvar('event_description')
       </div>
     </div>
-    {{setvar::event_border_generate::false}}
+    <%_ } else { _%>
+      自然输出内容，融入在正文中
     <%_ } _%>
 
 output_format:
@@ -165,7 +131,4 @@ output_format:
   narrative_integration: "所有事件描述必须符合当前环境和剧情背景"
   variable_handling: "状态变化统一在<UpdateVariable>中处理"
   protocol_reference: "事件生成严格遵循对应协议的标准流程"
-  display_requirement: "每个触发的事件必须使用对应的展示栏格式显示"
-
 </random_event_trigger_protocol>
-<%_ } _%>
