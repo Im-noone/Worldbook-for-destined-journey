@@ -1,4 +1,4 @@
-{{setvar::shijianlian::
+{{setvar::random_event_trigger::
 是，参考<random_event_trigger_protocol>}}
 
 <random_event_trigger_protocol>
@@ -18,7 +18,7 @@ event_priority_check:
 
 event_generation_steps:
   奇遇事件:
-    <%if {{getvar::trigger_random_event}} == false &&  random_value < 2 && getvar('stat_data.角色.状态.等级') > 13 { %>
+    <%if ( {{getvar::trigger_random_event}} == false &&  random_value < 2 && getvar('stat_data.角色.状态.等级') > 13 ) { %>
       {{setvar::trigger_random_event::true}}
       {{setvar::event_border_generate::true}}
       {{setvar::current_event_type::"奇遇事件"}}
@@ -32,7 +32,7 @@ event_generation_steps:
     <% } %>
 
   随机遭遇战:
-    <%if {{getvar::trigger_random_event}} == false &&  random_value < 6 && !getvar('stat_data.角色.在军队中') && %> 当前不在关键对话或战斗中 <% { %>
+    <%if ( {{getvar::trigger_random_event}} == false &&  random_value < 6 && !getvar('stat_data.角色.在军队中') && %> 当前不在关键对话或战斗中 <% ) { %>
       {{setvar::trigger_random_event::true}}
       {{setvar::event_border_generate::true}}
       {{setvar::current_event_type::"随机遭遇战"}}
@@ -48,7 +48,7 @@ event_generation_steps:
     <% } %>
 
   战役事件:
-    <%if {{getvar::trigger_random_event}} == false &&  random_value < 6 && getvar('stat_data.角色.在军队中') && getvar('stat_data.角色.军队状态') in ['行军', '驻扎'] { %>
+    <%if ( {{getvar::trigger_random_event}} == false &&  random_value < 6 && getvar('stat_data.角色.在军队中') && getvar('stat_data.角色.军队状态') in ['行军', '驻扎'] ) { %>
       {{setvar::trigger_random_event::true}}
       {{setvar::event_border_generate::true}}
       {{setvar::current_event_type::"战役事件"}}
@@ -66,7 +66,7 @@ event_generation_steps:
     <% } %>
 
   任务型随机事件:
-    <%if {{getvar::trigger_random_event}} == false &&  random_value < 15 && %> 当前不在关键对话或战斗中 <% { %>
+    <%if ( {{getvar::trigger_random_event}} == false &&  random_value < 15 && %> 当前不在关键对话或战斗中 <%  ) { %>
       {{setvar::trigger_random_event::true}}
       {{setvar::event_border_generate::true}}
       {{setvar::current_event_type::"任务型随机事件"}}
@@ -81,7 +81,7 @@ event_generation_steps:
     <% } %>
 
   王国战争事件:
-    <%if {{getvar::trigger_random_event}} == false &&  random_value < 25 && getvar('stat_data.角色.状态.等级') >= 8 { %>
+    <%if ( {{getvar::trigger_random_event}} == false &&  random_value < 25 && getvar('stat_data.角色.状态.等级') >= 8 ) { %>
       {{setvar::trigger_random_event::true}}
       {{setvar::event_border_generate::true}}
       {{setvar::current_event_type::"王国战争事件"}}
@@ -98,7 +98,7 @@ event_generation_steps:
 
   沉浸感增强事件:
     
-    <%if {{getvar::trigger_random_event}} == false &&  random_value < 80 && %> 当前不在关键对话或战斗中 <% { %>
+    <%if ( {{getvar::trigger_random_event}} == false &&  random_value < 80 && %> 当前不在关键对话或战斗中 <% ) { %>
       {{setvar::trigger_random_event::true}}
       {{setvar::event_border_generate::false}}
       {{setvar::current_event_type::"沉浸感增强事件"}}
@@ -123,7 +123,7 @@ execution_flow:
 # 随机事件触发展示栏
 event_display_format:
   template: |
-    <%if {{getvar::event_border_generate}} == true { %>
+    <%if ( {{getvar::event_border_generate}} == true ) { %>
     <div style="
       border: 2px solid {{border_color}};
       border-radius: 8px;
