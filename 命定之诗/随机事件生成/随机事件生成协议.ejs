@@ -10,38 +10,38 @@ generate_step:
   let event_border_generate = false;
   let current_event_type = "";
   let event_description = "";
-  if ( trigger_random_event === false && random_value < 2 && getvar('stat_data.角色.状态.等级') > 13) { 
+  if ( trigger_random_event == false && random_value < 2 && getvar('stat_data.角色.状态.等级') > 13) { 
       trigger_random_event = true
       event_border_generate = true
       current_event_type = "奇遇事件"
       event_description = `根据事件内容填充描述` %>奇遇事件<%
-  } else if ( trigger_random_event === false && random_value < 6 && !getvar('stat_data.角色.在军队中')) {
+  } else if ( trigger_random_event == false && random_value < 6 && !getvar('stat_data.角色.在军队中')) {
       trigger_random_event = true
       event_border_generate = true
       current_event_type = "随机遭遇战"
       event_description = `根据事件内容填充描述` %>随机遭遇战<%
-  } else if ( trigger_random_event === false && random_value < 6 && getvar('stat_data.角色.在军队中') && getvar('stat_data.角色.军队状态') in ['行军', '驻扎']) {
+  } else if ( trigger_random_event == false && random_value < 6 && getvar('stat_data.角色.在军队中') && getvar('stat_data.角色.军队状态') in ['行军', '驻扎']) {
       trigger_random_event = true
       event_border_generate = true
       current_event_type = "战役事件"
       event_description = `根据事件内容填充描述` %>战役事件<%
-  } else if ( trigger_random_event === false && random_value < 15 && !getvar('stat_data.角色.在关键对话中') && !getvar('stat_data.角色.在战斗中')) {
+  } else if ( trigger_random_event == false && random_value < 15 && !getvar('stat_data.角色.在关键对话中') && !getvar('stat_data.角色.在战斗中')) {
       trigger_random_event = true
       event_border_generate = true
       current_event_type = "任务型随机事件"
       event_description = `根据事件内容填充描述` %>任务型随机事件<%
-  } else if ( trigger_random_event === false && random_value < 25 && getvar('stat_data.角色.状态.等级') >= 8) { 
+  } else if ( trigger_random_event == false && random_value < 25 && getvar('stat_data.角色.状态.等级') >= 8) { 
       trigger_random_event = true
       event_border_generate = true
       current_event_type = "王国战争事件"
       event_description = `根据事件内容填充描述` %>王国战争事件<%
-  } else if ( trigger_random_event === false && random_value < 80 && !getvar('stat_data.角色.在关键对话中') && !getvar('stat_data.角色.在战斗中')) {
+  } else if ( trigger_random_event == false && random_value < 80 && !getvar('stat_data.角色.在关键对话中') && !getvar('stat_data.角色.在战斗中')) {
       trigger_random_event = true
       event_border_generate = false
       current_event_type = "沉浸感事件" %>沉浸感事件<%
   } 
   
-  if (current_event_type === "奇遇事件") { _%>
+  if (current_event_type == "奇遇事件") { _%>
   - step3: 参考协议 - <legend_event_protocol>
   - step4: 确定奇遇发生的超自然区域类型
   - step5: 从对应区域事件表中挑选id=`1d20`的模板输出事件
@@ -50,7 +50,7 @@ generate_step:
   - step8: 提供概念性、法则性或神性相关的独特奖励
   - step9: 按照<random_event_generate_protocol>生成原则和模板生成对应事件
 
-  <%_ } else if (current_event_type === "随机遭遇战") { _%>
+  <%_ } else if (current_event_type == "随机遭遇战") { _%>
   - step3: 参考协议 - <random_encounter_protocol>
   - step4: 分析等级、装备、技能、资源状态
   - step5: 根据玩家所处环境决定使用哪个对应生成事件的region_type
@@ -59,7 +59,7 @@ generate_step:
   - step8: 预生成战斗胜利后的奖励
   - step9: 按照<random_event_generate_protocol>生成原则和模板生成对应事件
 
-  <%_ } else if (current_event_type === "战役事件") { _%>
+  <%_ } else if (current_event_type == "战役事件") { _%>
   - step3: 参考协议 - <battlefield_event_protocol>
   - step4: 定地形类型和优劣势，计算敌我双方实力比值，确定当前战斗阶段和士气水平
   - step5: 根据军衔和等级确定决策权重
@@ -68,7 +68,7 @@ generate_step:
   - step8: 提供阶段变化、状态调整等后果
   - step9: 按照<random_event_generate_protocol>生成原则和模板生成对应事件
 
-  <%_ } else if (current_event_type === "任务型随机事件") { _%>
+  <%_ } else if (current_event_type == "任务型随机事件") { _%>
   - step3: 参考协议 - <task_generation_protocol>
   - step4: 确定角色所在区域类型及子区域
   - step5: 根据区域，{{user}}财富，爵位，等级等信息确定可能涉及的势力类型，敌人种类等
@@ -77,7 +77,7 @@ generate_step:
   - step8: 生成50-200字任务引子描述
   - step9: 调用<任务与委托生成规则>生成一个任务委托
 
-  <%_ } else if ( current_event_type === "王国战争事件") { _%>
+  <%_ } else if ( current_event_type == "王国战争事件") { _%>
   - step3: 参考协议 - <kingdom_war_protocol>
   - step4: 区分安全位置与危险位置
   - step5: 基于爵位和位置生成对应战争事件
@@ -85,7 +85,7 @@ generate_step:
   - step7: 将战争信息自然融入对话或环境
   - step8: 调用<任务与委托生成规则>生成一个战争招募任务
   
-  <%_ } else if (current_event_type === "沉浸感事件") { _%>
+  <%_ } else if (current_event_type == "沉浸感事件") { _%>
   - step3: 参考协议 - <immersion_enhancement_protocol>"
   - step4: 确定角色所在的大区域类型
   - step5: 随机选择或基于上下文确定子区域
@@ -99,7 +99,7 @@ generate_step:
 # 随机事件触发展示栏
 event_display_format:
   template: |
-    <%_ if (getvar('event_border_generate') === true) { _%>
+    <%_ if (event_border_generate == true) { _%>
     <div style="
       border: 2px solid #FFD700;
       border-radius: 8px;
