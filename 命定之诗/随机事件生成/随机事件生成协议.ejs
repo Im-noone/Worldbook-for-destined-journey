@@ -7,7 +7,7 @@
   let current_event_type = "";
   let event_description = "";
   switch(true){
-  case trigger_random_event == false && dice_1 < 10 && getvar('stat_data.角色.状态.等级') > 13:
+  case trigger_random_event == false && dice_1 < 3 && getvar('stat_data.角色.状态.等级') > 13:
       trigger_random_event = true
       event_border_generate = true
       current_event_type = "奇遇事件"
@@ -15,7 +15,7 @@
       参考协议<legend_event_protocol>生成
       <% 
       
-  case trigger_random_event == false && dice_1 < 40 && !getvar('stat_data.角色.在军队中') : 
+  case trigger_random_event == false && dice_1 < 15 && !getvar('stat_data.角色.在军队中') : 
       trigger_random_event = true
       event_border_generate = true
       current_event_type = "随机遭遇战"
@@ -23,7 +23,7 @@
       参考协议<random_encounter_protocol>生成
       <% 
       
-  case trigger_random_event == false && dice_1 < 40 && getvar('stat_data.角色.在军队中') && (getvar('stat_data.角色.军队状态') == '行军' || getvar('stat_data.角色.军队状态') == '驻扎') :
+  case trigger_random_event == false && dice_1 < 15 && getvar('stat_data.角色.在军队中') && (getvar('stat_data.角色.军队状态') == '行军' || getvar('stat_data.角色.军队状态') == '驻扎') :
       trigger_random_event = true
       event_border_generate = true
       current_event_type = "战役事件"
@@ -31,7 +31,7 @@
       参考协议<battlefield_event_protocol>生成
       <%
       
-  case trigger_random_event == false && dice_1 < 60 && !getvar('stat_data.角色.在战斗中') :
+  case trigger_random_event == false && dice_1 < 30 && !getvar('stat_data.角色.在战斗中') :
       trigger_random_event = true
       event_border_generate = true
       current_event_type = "任务型随机事件"
@@ -42,7 +42,7 @@
       
       <%
       
-  case ( trigger_random_event == false && dice_1 < 100 && getvar('stat_data.角色.状态.等级') >= 8) :
+  case ( trigger_random_event == false && dice_1 < 60 && getvar('stat_data.角色.状态.等级') >= 8) :
       trigger_random_event = true
       event_border_generate = true
       current_event_type = "王国战争事件"
