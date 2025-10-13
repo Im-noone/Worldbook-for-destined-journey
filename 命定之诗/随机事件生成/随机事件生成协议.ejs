@@ -1,129 +1,58 @@
-{{setvar::random_event_trigger::
-[随机事件生成]
-严格按照<random_event_trigger_protocol>的generate_step中的步骤,开始在<think></think>中构造事件
-注意步骤要求需要进行两次掷骰,
-第一次在step2,严格执行代码逻辑，根据执行后的{{current_event_type}}判定事件类型
-第二次在step5,决定事件的具体模板
-**禁止跳步,禁止在正文中掷骰**}}
-
 <random_event_trigger_protocol>
-generate_step:
-  - step1: 确认是否允许触发任何随机事件,检查{{user}}是否在战斗或关键对话中,检查{{user}}是否在军队中
-  - step2: 第一次掷骰,判断触发<% 
+  <% 
   let dice_1 = `1d100`; 
+  let dice_2 = 0; 
   let trigger_random_event = false;
   let event_border_generate = false;
   let current_event_type = "";
   let event_description = "";
-  if ( trigger_random_event == false && dice_1 < 2 && getvar('stat_data.角色.状态.等级') > 13) { 
+  switch(true){
+  case trigger_random_event == false && dice_1 < 10 && getvar('stat_data.角色.状态.等级') > 13:
       trigger_random_event = true
       event_border_generate = true
       current_event_type = "奇遇事件"
-      event_description = `根据事件内容填充描述` 
-  } else if ( trigger_random_event == false && dice_1 < 6 && !getvar('stat_data.角色.在军队中')) {
+      event_description = `根据事件内容填充描述`%>
+      参考协议<legend_event_protocol>生成
+      <% 
+      
+  case trigger_random_event == false && dice_1 < 40 && !getvar('stat_data.角色.在军队中') : 
       trigger_random_event = true
       event_border_generate = true
       current_event_type = "随机遭遇战"
-      event_description = `根据事件内容填充描述` 
-  } else if ( trigger_random_event == false && dice_1 < 6 && getvar('stat_data.角色.在军队中') && (getvar('stat_data.角色.军队状态') == '行军' || getvar('stat_data.角色.军队状态') == '驻扎')) {
+      event_description = `根据事件内容填充描述`%>
+      参考协议<random_encounter_protocol>生成
+      <% 
+      
+  case trigger_random_event == false && dice_1 < 40 && getvar('stat_data.角色.在军队中') && (getvar('stat_data.角色.军队状态') == '行军' || getvar('stat_data.角色.军队状态') == '驻扎') :
       trigger_random_event = true
       event_border_generate = true
       current_event_type = "战役事件"
-      event_description = `根据事件内容填充描述` 
-  } else if ( trigger_random_event == false && dice_1 < 15 && !getvar('stat_data.角色.在战斗中')) {
+      event_description = `根据事件内容填充描述`%>
+      参考协议<battlefield_event_protocol>生成
+      <%
+      
+  case trigger_random_event == false && dice_1 < 60 && !getvar('stat_data.角色.在战斗中') :
       trigger_random_event = true
       event_border_generate = true
       current_event_type = "任务型随机事件"
-      event_description = `根据事件内容填充描述` 
-  } else if ( trigger_random_event == false && dice_1 < 25 && getvar('stat_data.角色.状态.等级') >= 8) { 
+      event_description = `根据事件内容填充描述`
+      dice_2 = `1d20` %>
+      - 参考协议<task_generation_protocol>
+      
+      
+      <%
+      
+  case ( trigger_random_event == false && dice_1 < 100 && getvar('stat_data.角色.状态.等级') >= 8) :
       trigger_random_event = true
       event_border_generate = true
       current_event_type = "王国战争事件"
-      event_description = `根据事件内容填充描述` 
-  } else if ( trigger_random_event == false && dice_1 < 80 && !getvar('stat_data.角色.在战斗中')) {
-      trigger_random_event = true
-      event_border_generate = false
-      current_event_type = "沉浸感事件" 
-  } 
-  
-  if (current_event_type == "奇遇事件") { %>
-  - step3: 参考协议<legend_event_protocol>
-  - step4: 分析区域类型,考虑{{user}}等级和生命层级
-  - step5: 第二次掷骰,从对应区域事件表中挑选id=`1d20`的模板输出事件
-  - step6: 生成超越常规现实的描述和体验,提供概念性、法则性或神性相关的独特奖励
-  - step7: 按照<random_event_generate_protocol>生成原则和模板生成对应事件
-
-  <% } else if (current_event_type == "随机遭遇战") { %>
-  - step3: 参考协议<random_encounter_protocol>
-  - step4: 分析{{user}}等级、装备、技能、资源状态,根据所在区域决定region_type
-  - step5: 第二次掷骰,对应区域事件表中挑选id=`1d20`的模板输出事件
-  - step6: 生成事件对应的完整敌人档案,预生成战斗胜利后的奖励
-  - step7: 按照<random_event_generate_protocol>生成原则和模板生成对应事件
-
-  <% } else if (current_event_type == "战役事件") { %>
-  - step3: 参考协议<battlefield_event_protocol>
-  - step4: 考虑地形类型和优劣势,敌我双方实力比值,当前战斗阶段和士气水平。确认{{user}}的军衔和等级
-  - step5: 第二次掷骰,从对应区域事件表中挑选id=`1d20`的事件模板,根据实际情况调整事件难度
-  - step6: 生成50-150字战场描述,阶段变化,状态调整等信息
-  - step7: 按照<random_event_generate_protocol>生成原则和模板生成对应事件
-
-  <% } else if (current_event_type == "任务型随机事件") { %>
-  - step3: 参考协议<task_generation_protocol>
-  - step4: 分析区域类型,,结合{{user}}财富,爵位,等级等信息,分析可能涉及的势力类型,敌人种类等
-  - step5: 第二次掷骰,从对应区域事件表中挑选id=`1d20`的事件模板
-  - step6: 生成50-200字任务引子描述
-  - step7: 调用<任务与委托生成规则>生成一个任务委托
-
-  <% } else if ( current_event_type == "王国战争事件") { %>
-  - step3: 参考协议<kingdom_war_protocol>
-  - step4: 分析{{user}}的等级,爵位,所属国家等,考虑友方、敌方或中立势力介入
-  - step5: 第二次掷骰,基于爵位和位置生成对应战争事件
-  - step6: 将战争招募士兵的信息自然融入对话或环境
-  - step7: 调用<任务与委托生成规则>生成一个战争招募任务
-  
-  <% } else if (current_event_type == "沉浸感事件") { %>
-  - step3: 参考协议<immersion_enhancement_protocol>"
-  - step4: 基于上下文确定角色所在的大区域类型,考虑季节性、种族或势力因素
-  - step5: 第二次掷骰,从对应区域事件表中挑选id=`1d20`的事件作为模板
-  - step6: 根据模板生成50-150字生动感官描述,自然融入正文中,**不生成html包裹的文字**
-  <% } else { %>
-  - step4: 不生成随机事件
-  - step5: `1d10`,但不触发事件
+      event_description = `根据事件内容填充描述`
+      dice_2 = `1d20` %>
+      - 参考协议<kingdom_war_protocol>
+      <%
+  default: %>
+    不生成随机事件
   <%_ } _%>
-  
-# 随机事件触发展示栏
-event_display_format:
-  template: |
-    <%_ if (event_border_generate == true) { _%>
-    <div style="
-      border: 2px solid #FFD700;
-      border-radius: 8px;
-      background: linear-gradient(135deg, #DAA52020, #DAA52060);
-      padding: 12px;
-      margin: 10px 0;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    ">
-      <div style="display: flex; align-items: center; margin-bottom: 8px;">
-        <span style="font-size: 24px; margin-right: 10px;">`添加合适图标icon`</span>
-        <span style="font-weight: bold; font-size: 18px; color: #FFF8DC;">getvar('current_event_type')</span>
-      </div>
-      <div style="
-        border-top: 1px solid #FFD70040;
-        padding-top: 8px;
-        font-size: 14px;
-        color: #FFF8DC90;
-      ">
-        getvar('event_description')
-      </div>
-    </div>
-    <%_ } else { _%>
-      自然输出内容,融入在正文中
-    <%_ } _%>
-
-output_format:
-  event_trigger: "事件触发应自然融入叙事流程,不显式标注概率计算"
-  narrative_integration: "所有事件描述必须符合当前环境和剧情背景"
-  variable_handling: "状态变化统一在<UpdateVariable>中处理"
-  protocol_reference: "事件生成严格遵循对应协议的标准流程"
 </random_event_trigger_protocol>
+
+
