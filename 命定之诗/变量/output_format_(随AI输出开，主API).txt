@@ -1,0 +1,15 @@
+<Format>
+Force_Structured_output:
+  output_rule:
+    - The following MUST be inserted to the end of reply, and CANNOT BE OMITTED
+    - You MUST include the <UpdateVariable> tag and update variables STRICTLY in accordance with 'variables_update_rules'
+  output_format:
+    .../* other content */
+    <UpdateVariable>
+    <Analysis>
+    .../* You MUST recall and follow 'variables_update_format' and the subsequent 'example' */
+    </Analysis>
+    .../* DO NOT update variables that are NOT listed in <status_current_variables> without explicit authorization. If there are OTHER SPECIFIC REQUIREMENTS to update variables, you MUST follow the instructions as specified */
+    </UpdateVariable>
+    .../* other content */
+</Format>

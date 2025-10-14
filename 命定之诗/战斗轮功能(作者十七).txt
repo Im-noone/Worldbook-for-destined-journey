@@ -1,0 +1,211 @@
+<combat_round_protocol>
+# 核心指令: 当触发任何战斗场景时,必须严格遵循本协议进行处理。
+
+# --- 阶段一: 内部思考与演算 (Chain of Thought) ---
+# 在生成任何战斗描述前,必须在内部完成以下思考步骤:
+
+1.  **战斗类型与层级判定:**
+    *   根据敌人强度与剧情背景,将本次战斗归类为: [普通遭遇战], [精英战], [Boss战], 或 [死斗]。
+    *   **部队战斗判定:** 如果战斗涉及军队作战,进一步判定为: [部队遭遇战], [部队决战], [多战线作战], [分割包围战]。
+    *   根据参战单位的最高生命层级,判定本次战斗的描述烈度: [低层级: 1-3层], [中层级: 4-5层], [高层级: 6-7层]。 
+    *   更新mvu中的combat_type
+
+2.  **战前状态盘点:**
+    *   罗列所有参战单位 ({{user}}, 队友, 敌人)。
+    *   **部队状态盘点 (如适用):**
+        - 将敌我双方部队分割为多个独立部分，注意能单人对战局造成影响的强者单独列出，是否需要单独列出参考<army_number_represent_protocol>
+        - 普通部队: [前军], [左翼], [右翼], [中军], [后备队],
+        - 特殊部队: [弓箭手部队], [法师部队], [战争巨兽], [火炮部队]
+        - 部队状态变化: 合理考虑交战情况，例如双方战损消耗部队HP，双方后备队投入后其他普通部队人数，士气等属性增加。
+        - 部队装备，属性和其他信息参考<army_number_represent_protocol>
+    *   确认每个单位当前的HP, MP, SP, 核心五维属性, 以及持有的[要素]、[权能]、[法则]。
+    *   **神国判定**: 检查战场是否位于某位神灵的[神国]内。若是,记录下神国的主宰者。
+    
+
+3.  **行动序列确立:**
+    *   比较所有参战单位的"敏捷"属性值。
+    *   若有单位持有【疾速】等影响行动顺序的[要素],在此时进行修正计算。
+    *   **部队行动序列 (如适用):** 
+        - 每个部队部分独立计算"反应速度" = 基础值 + (训练等级*2) + (士气值/20)
+        - 基础值按照同层级角色数值合理计算
+        - 特殊部队速度修正: 弓箭手+5, 法师-3, 战争巨兽-10, 火炮-15
+        - 多战线作战: 每条战线独立计算行动序列
+    *   按照最终敏捷值从高到低的顺序,生成本回合的行动序列轴。
+
+4.  **行动轮次演算 (对序列中的每个单位):**
+    *   **当前行动者**: [单位名称]
+    *   **神国规则宣告 (若适用)**: 若当前行动者是神国主宰,且战斗在其神国内,他可以在行动开始前宣告一条本回合生效的临时规则 (例如: "本回合内,所有火焰伤害翻倍")。
+    *   **部队事件触发 (如适用)**: 在部队战斗的每个行动轮次开始前,有10%概率触发随机战场事件,参考<battlefield_event_protocol>,事件会影响当前部队部分的行动效果。
+    *   **行动拆分**: 每个单位拥有 [攻击] 和 [动作] 各一次。除非特殊说明,发动[权能]或[法则]的主动效果,将消耗该单位本回合的[攻击]与[动作]。
+    *   **[攻击] 演算**:
+        a. 目标确认: [目标名称]
+        b. 类型判定: [普攻] / [物理技能] / [魔法技能]/[混合技能]。
+        c. 命中检定: `本次掷骰结果: {{roll 1d20}} = r1`。
+            *   r1 >= 19: 完美命中(暴击)
+            *   8 <= r1 < 19: 普通命中
+            *   r1 < 8: 未命中
+        d. 伤害计算 (若命中):
+            *   **公式**: `最终伤害 = (技能基准威力 + 对应单属性 × 3) × [技能品质乘数] × [武器品质乘数] × [各类增伤/减伤修正]`
+            *   若为暴击, 最终伤害乘以 2。
+            *   以上公式适用: 单人对单人，单人对部队，部队对部队
+            *   若计算部队对单人伤害，最终伤害*0.2
+            *   **伤害计算参考表:**
+                *   **[技能基准威力]:**
+                    *   普攻: 20
+                    *   普通品质: 30
+                    *   优良品质: 50
+                    *   稀有品质: 80
+                    *   史诗品质: 120
+                    *   传说品质: 170
+                    *   神话品质: 230
+                *   **[技能品质乘数]:**
+                    *   普通: 1.0x
+                    *   优良: 1.5x
+                    *   稀有: 2.5x
+                    *   史诗: 4.0x
+                    *   传说: 7.0x
+                    *   神话: 12.0x
+                *   **[武器品质乘数]:**
+                    *   普通: 1.0x
+                    *   优良: 1.2x
+                    *   稀有: 1.5x
+                    *   史诗: 2.0x
+                    *   传说: 2.5x
+                    *   神话: 3.0x
+        e. 资源更新: 
+          - 更新目标的HP，MP，SP值。
+          - 如果为部队作战，还需要考虑部队士气值，注意部队士气在目睹更高生命阶层攻击时下降更快。
+        f. 要素/法则效果结算:
+            *   检查攻击附带的[要素]或[法则]效果。
+            *   若有状态施加, 进行状态检定: `本次掷骰结果: {{roll 1d20}} = r2`。
+            *   r2 >= 12: 施加成功。
+            *   r2 < 12: 施加失败。
+    *   **[动作] 演算**:
+        a. 类型判定: [使用药剂] / [施加Buff/Debuff] / [发动权能] / [发动法则主动效果]。
+        b. 效果结算: 计算资源变化，记录效果。
+
+5.  **回合结束判定:**
+    *   检查是否存在一方全员HP=0或逃跑。
+    *   **部队战斗判定 (如适用)**: 检查各部队部分的士气值/规模比例，判断是否有战线崩溃。特殊部队崩溃影响: 法师部队崩溃影响全军士气-20%, 战争巨兽崩溃影响全军士气-30%。
+    *   若战斗继续: 推进至行动序列的下一个单位。
+    *   若战斗结束: 判定胜负，结算奖励或触发失败剧情。
+    *   **逃跑与殉道判定 (非死斗):**
+        *   检查敌方单位的HP/MP/SP任一资源是否低于阈值: [普通敌人: 40%], [精英敌人: 20%], [Boss敌人: 10%]。
+        *   若低于阈值, 进行逃跑检定: `本次掷骰结果: {{roll 1d20}} = r3`。若 r3 < 5 则战斗以敌方逃跑结束；若 r3 > 13,则敌方进入"美德"状态，战斗意志提升。
+        *   如果为部队作战，士气清零视为被击溃，将部队HP清理并移除。且会影响其他部队(友方下降，敌方上升)
+# --- 阶段二: 格式化输出 ---
+# 基于内部演算结果, 严格遵循**数据面板 (HTML) + 叙事正文**的双层结构进行输出。所有面板需使用深色背景和浅色字体, **严禁出现斜体字**。
+
+## 1. 战前状态展示
+html_template: |
+  <div style="background-color:#333; color:#FFF; padding:10px; border-radius:5px; margin-bottom:10px;">
+    <p style="margin:0; padding:0;"><b>{{user}}</b><br>HP: XXX/XXX | MP: XXX/XXX | SP: XXX/XXX<br>力量:X 敏捷:X 体质:X 智力:X 精神:X</p>
+    <hr style="border-color:#555;">
+    <p style="margin:0; padding:0;"><b>[队友名]</b><br>HP: XXX/XXX | MP: XXX/XXX | SP: XXX/XXX<br>力量:X 敏捷:X 体质:X 智力:X 精神:X</p>
+    <hr style="border-color:#555;">
+    <p style="margin:0; padding:0;"><b>[敌人名]</b><br>HP: XXX/XXX | MP: XXX/XXX | SP: XXX/XXX<br>力量:X 敏捷:X 体质:X 智力:X 精神:X</p>
+  </div>
+
+html_troop_template: |
+  <div style="background-color:#333; color:#FFF; padding:10px; border-radius:5px; margin-bottom:10px;">
+    <p style="margin:0; padding:0;"><b>{{user}}</b><br>HP: XXX/XXX | MP: XXX/XXX | SP: XXX/XXX<br>力量:X 敏捷:X 体质:X 智力:X 精神:X</p>
+    <hr style="border-color:#555;">
+    <p style="margin:0; padding:0;"><b>[己方强者名]</b><br>HP: XXX/XXX | MP: XXX/XXX | SP: XXX/XXX<br>力量:X 敏捷:X 体质:X 智力:X 精神:X</p>
+    <hr style="border-color:#555;">
+    <p style="margin:0; padding:0;"><b>[敌方强者名]</b><br>HP: XXX/XXX | MP: XXX/XXX | SP: XXX/XXX<br>力量:X 敏捷:X 体质:X 智力:X 精神:X</p>
+    <hr style="border-color:#555;">
+    <p style="margin:0; padding:0;"><b>[己方部队名]</b><br>HP: XXX/XXX | MP: XXX/XXX | SP: XXX/XXX  | 士气：XXX/XXX<br>力量:X 敏捷:X 体质:X 智力:X 精神:X</p>
+    <hr style="border-color:#555;">
+    <p style="margin:0; padding:0;"><b>[敌方部队名]</b><br>HP: XXX/XXX | MP: XXX/XXX | SP: XXX/XXX  | 士气：XXX/XXX<br>力量:X 敏捷:X 体质:X 智力:X 精神:X</p>
+  </div>
+
+## 2. 行动顺序轴
+html_template: |
+  <div style="background-color:#222; color:#DDD; padding:8px; border-radius:5px; margin-bottom:10px;">
+    <b>行动顺序:</b> [角色A] → [角色B] → [角色C] → ...
+  </div>
+
+## 3. 行动轮次面板 (数据核心)
+
+### 攻击面板
+html_template: |
+  <div style="background-color:#444; color:#FFF; padding:10px; border-radius:5px; margin-bottom:10px;">
+    <p style="margin:0; padding:0;"><b>[攻击者]的攻击</b></p>
+    <p style="margin:0; padding:0; font-size:0.9em; color:#CCC;">HP: XXX/XXX | MP: XXX/XXX | SP: XXX/XXX (-XX)</p>
+    <hr style="border-color:#666;">
+    <p style="margin:0; padding:0;"><b>命中检定:</b> 掷骰结果[r1]→ [完美命中(暴击)! / 普通命中 / 未命中]</p>
+    <p style="margin:0; padding:0;"><b>伤害计算式:</b></p>
+    <ul style="margin:5px 0 5px 20px; padding:0; font-size:0.85em; color:#DDD;">
+      <li>基础伤害 = (技能威力 + [对应单属性(五维选1)]×3) × 技能品质乘数 = (XX + XX) × X.X = YYY</li>
+      <li>武器修正 = 基础伤害 × 武器品质乘数 = YYY × X.X = ZZZ</li>
+      <li>最终伤害 = 武器修正 × (1 + 增伤%) × (1 - 减伤%) = ZZZ × X.X × X.X = NNN</li>
+    </ul>
+    <p style="margin:0; padding:0;"><b>效果结算清单:</b></p>
+    <ul style="margin:5px 0 0 20px; padding:0; font-size:0.9em;">
+      <li> ✓ 使用技能 [技能名] 攻击 [目标名]。</li>
+      <li> ✓ 对目标造成 <b>NNN</b> 点伤害! ([目标] HP: YYY → ZZZ)</li>
+      <li> ✓ [要素/状态] 效果触发: [效果简述]。</li>
+      <li> ✓ [状态名] 施加判定: 掷骰结果 [r2] → [成功/失败]。</li>
+    </ul>
+  </div>
+
+### 动作面板
+html_template: |
+  <div style="background-color:#3a3a3a; color:#EEE; padding:10px; border-radius:5px; margin-bottom:10px;">
+    <p style="margin:0; padding:0;"><b>[行动者]的动作</b></p>
+    <p style="margin:0; padding:0; font-size:0.9em; color:#CCC;">HP: XXX/XXX (+XX) | MP: XXX/XXX (-XX) | SP: XXX/XXX</p>
+    <hr style="border-color:#666;">
+    <p style="margin:0; padding:0;"><b>行动详情:</b></p>
+    <ul style="margin:5px 0 5px 20px; padding:0; font-size:0.85em; color:#DDD;">
+      <li>行动类型: [使用道具 / 发动权能 / 施展法术]</li>
+      <li>核心能力: [能力名称]</li>
+      <li>资源消耗: [XX MP / XX SP / 25% 最大资源]</li>
+    </ul>
+    <p style="margin:0; padding:0;"><b>效果结算清单:</b></p>
+    <ul style="margin:5px 0 0 20px; padding:0; font-size:0.9em;">
+      <li> ✓ [行动者] 发动了 [能力名称]。</li>
+      <li> ✓ 自身/目标获得 [状态/效果名] 效果。</li>
+      <li> ✓ 战场环境发生变化: [变化简述]。</li>
+    </ul>
+  </div>
+
+3.3. 回合结束事件面板 (按需显示)
+html_template: |
+<div style="background-color:#2a3a4a; color:#EEE; padding:10px; border-radius:5px; margin-bottom:10px;">
+<p style="margin:0; padding:0;"><b>回合结束检定</b></p>
+<hr style="border-color:#556677;">
+<p style="margin:0; padding:0;"><b>触发条件:</b> [敌人名] 的资源低于阈值。</p>
+<p style="margin:0; padding:0;"><b>士气检定:</b> 掷骰结果 [r3] → [结果]</p>
+<p style="margin:0; padding:0;"><b>最终结果:</b> [逃跑成功! / 逃跑失败! / 意志升华，进入【美德】状态!]</p>
+</div>
+
+## 4. 战斗叙事正文
+# 在所有战斗HTML面板之后, 生成正常叙事内容(也可包含对话)。
+instruction: |
+  参照<数值状态关系>描述状态
+  咒语/技能动作台词融入叙事
+  低层级:聚焦于武器交锋、身体动作、汗水与鲜血,以及对周遭物体的破坏(如桌椅碎裂)。
+  中层级:描述能量冲击、元素奔流、剑气纵横对小范围地形的改变(如地面龟裂、墙壁倒塌)。
+  高层级:重点描绘攻击对环境造成的破坏。若有凡人在场，从其视角侧面烘托力量的恐怖。发动【权能】或【法则】时，必须描绘其引发的天地异象与现实扭曲。
+  部队战斗突出双方的胶着态势与战场参考性，以及特殊部队和强者对部队造成的打击感
+## 5. 战斗结束面板
+
+### 胜利面板
+html_template: |
+  <div style="background-color:#2a4; color:#FFF; padding:15px; border-radius:5px; margin-top:10px;">
+    <h4 style="margin:0; padding:0;">战斗胜利!</h4>
+    <p style="margin:0; padding:0; font-style:normal;"><b>结果:</b> [简述敌人的最终结局, 如: 敌方全灭 / 目标被成功控制 / 敌人逃跑。]</p>
+    <hr style="border-color:#4c6;">
+    <p style="margin:0; padding:0;"><b>获得EXP(经验值，可为0):</b> +XXX EXP</p>
+    <p style="margin:0; padding:0;"><b>获得FP(命运点数，可为0):</b> +XXX FP</p>
+  </div>
+
+### 失败面板
+html_template: |
+  <div style="background-color:#822; color:#FFF; padding:15px; border-radius:5px; margin-top:10px;">
+    <h4 style="margin:0; padding:0;">战斗失败...</h4>
+    <p style="margin:0; padding:0; font-style:normal;"><b>结果:</b> [简述失败的直接后果, 如: 玩家被击败 / 任务目标被摧毁。]</p>
+    <hr style="border-color:#a44;">
+    <p style="margin:0; padding:0; font-style:normal; color:#FDD;">[强制进入失败剧情: 根据胜利方敌人的性格与目标,不可避免地展开后续故事,如被俘虏、羞辱、洗劫等。]</p>
+  </div>
+</combat_round_protocol>
