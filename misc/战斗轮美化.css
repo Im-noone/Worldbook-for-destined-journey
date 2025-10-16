@@ -1,0 +1,238 @@
+<style>
+/* ===========================
+   SillyTavern 战斗轮·西幻暗色主题（短类名版本）
+   适配 HTML: .cp .sp .csf .cse .ph .sh .dl .rl .hl .dr .dm .ao .atk .act .re .vic .def .nar .nar-p .cn .cr
+   =========================== */
+
+/* 基础变量 */
+:root {
+  --bg-0: #111318;
+  --bg-1: #151922;
+  --panel-bg: #1a1f2a;
+  --panel-gloss-1: rgba(255,255,255,0.03);
+  --panel-gloss-2: rgba(0,0,0,0.20);
+
+  --text-1: #E8E5DD;
+  --text-2: #C9C6BE;
+  --muted-1: #A9A497;
+
+  --line-1: #2A3140;
+  --shadow-1: rgba(0,0,0,0.55);
+
+  --gold: #D4B37C;
+  --sky: #7FB0FF;
+  --emerald: #7BD88F;
+  --cyan: #79C8C9;
+  --crimson: #D75A5A;
+  --orange: #E07A3F;
+  --violet: #B48EAD;
+
+  --success: #5FB97D;
+  --danger: #E05959;
+  --warning: #E0A83F;
+
+  --mono: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --serif: 'Cinzel', 'Garamond', 'Times New Roman', serif;
+  --sans:  'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', 'Helvetica Neue', Arial, sans-serif;
+
+  --radius-1: 12px;
+  --radius-2: 16px;
+  --gap-1: 10px;
+  --gap-2: 14px;
+  --gap-3: 18px;
+}
+
+/* 色弱友好模式：外层容器加 .cb-safe 即可 */
+.cb-safe {
+  --emerald: #009E73; /* Okabe–Ito 友方 */
+  --crimson: #D55E00; /* Okabe–Ito 敌方 */
+  --cyan:    #0072B2; /* 高亮蓝 */
+}
+
+/* 高对比模式：外层容器加 .high-contrast */
+.high-contrast {
+  --panel-bg: #131722;
+  --text-1: #FAFAF8;
+  --text-2: #E2E0DC;
+  --line-1: #3A4255;
+}
+
+/* 面板通用外观（cp） */
+.cp {
+  color: var(--text-1);
+  background:
+    linear-gradient(180deg, var(--panel-gloss-1), transparent 60%),
+    linear-gradient(0deg,  var(--panel-gloss-2), transparent 40%),
+    var(--panel-bg);
+  border: 1px solid var(--line-1);
+  border-radius: var(--radius-1);
+  box-shadow:
+    0 10px 22px var(--shadow-1),
+    inset 0 1px 0 rgba(255,255,255,0.03);
+  padding: 14px 16px;
+  margin: 12px 0;
+  backdrop-filter: saturate(105%) blur(0.5px);
+  transition: background-color 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
+}
+
+/* 标题与小标题（ph/sh） */
+.cp .ph,
+.cp .panel-header,
+.cp .panel-heading {
+  font-family: var(--serif);
+  color: var(--gold);
+  letter-spacing: 0.5px;
+  margin: 6px 0 8px;
+  text-shadow: 0 1px 0 rgba(0,0,0,0.35);
+  font-size: 1.05rem;
+}
+
+.cp .sh,
+.cp .panel-subtitle {
+  font-family: var(--sans);
+  color: var(--text-2);
+  font-size: 0.94rem;
+  margin: 2px 0 10px;
+  opacity: 0.95;
+}
+
+/* 列表与高亮（dl/rl/hl/dr/dm） */
+.cp .dl,
+.cp .rl {
+  margin: 8px 0;
+  padding-left: 14px;
+}
+
+.cp .dl li,
+.cp .rl li {
+  margin: 4px 0;
+  line-height: 1.45;
+}
+
+.cp .dl li { border-left: 2px solid rgba(212,179,124,0.27); padding-left: 8px; }
+.cp .rl li { border-left: 2px solid rgba(127,176,255,0.22); padding-left: 8px; }
+
+.cp .hl { color: var(--sky); font-weight: 600; }
+.cp .dr { font-family: var(--mono); color: var(--violet); font-weight: 700; text-shadow: 0 0 6px rgba(180,142,173,0.25); }
+.cp .dm { color: var(--danger); font-weight: 800; font-family: var(--mono); text-shadow: 0 0 6px rgba(224,89,89,0.25), 0 0 14px rgba(224,89,89,0.12); }
+
+/* —— 战前状态展示（sp/csf/cse/cn/cr） —— */
+.sp {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px,1fr));
+  gap: var(--gap-2);
+}
+
+.csf, .cse {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.03), transparent 60%),
+    linear-gradient(0deg, rgba(0,0,0,0.15), transparent 35%),
+    #171b25;
+  border: 1px solid var(--line-1);
+  border-radius: var(--radius-1);
+  padding: 10px 12px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+}
+
+.csf { border-left: 3px solid var(--emerald); box-shadow: 0 0 0 1px rgba(123,216,143,0.08) inset; }
+.cse { border-left: 3px solid var(--crimson); box-shadow: 0 0 0 1px rgba(215,90,90,0.08) inset; }
+
+.cn {
+  font-family: var(--serif);
+  font-size: 1.02rem;
+  color: var(--gold);
+  margin: 0 0 2px 0;
+  letter-spacing: 0.3px;
+}
+
+.csf .cn { color: var(--emerald); }
+.cse .cn { color: var(--crimson); }
+
+.cr {
+  font-family: var(--mono);
+  color: var(--text-1);
+  background: rgba(58,66,85,0.35);
+  border: 1px solid rgba(58,66,85,0.65);
+  border-radius: 8px;
+  padding: 6px 8px;
+  display: inline-block;
+  margin: 6px 0;
+}
+
+/* —— 行动顺序轴（ao） —— */
+.ao .dl li { position: relative; padding-left: 8px; }
+.ao .dl li::marker { color: var(--gold); }
+.ao .ph { margin-top: 10px; color: var(--sky); font-weight: 700; }
+
+/* —— 攻击面板（atk） —— */
+.atk { border-left: 3px solid var(--crimson); }
+.atk .ph { color: var(--crimson); }
+.atk .dl li { border-left-color: rgba(224,89,89,0.28); }
+.atk .rl li { border-left-color: rgba(224,122,63,0.28); }
+
+/* —— 动作面板（act） —— */
+.act { border-left: 3px solid var(--cyan); }
+.act .ph { color: var(--cyan); }
+.act .sh { font-family: var(--mono); color: var(--text-2); }
+
+/* —— 回合结束事件（re） —— */
+.re { border-left: 3px solid var(--warning); }
+.re .ph { color: var(--warning); }
+
+/* —— 结束面板（vic/def） —— */
+.vic {
+  background:
+    linear-gradient(180deg, rgba(95,185,125,0.12), transparent 60%),
+    linear-gradient(0deg, rgba(0,0,0,0.15), transparent 35%),
+    #17221b;
+  border-left: 4px solid var(--success);
+}
+.vic .ph, .vic h4 { font-family: var(--serif); color: var(--success); margin: 0 0 6px 0; text-shadow: 0 1px 0 rgba(0,0,0,0.35); }
+
+.def {
+  background:
+    linear-gradient(180deg, rgba(224,89,89,0.12), transparent 60%),
+    linear-gradient(0deg, rgba(0,0,0,0.15), transparent 35%),
+    #2a1717;
+  border-left: 4px solid var(--danger);
+}
+.def .ph, .def h4 { font-family: var(--serif); color: var(--danger); margin: 0 0 6px 0; }
+
+/* —— 沉浸叙事（nar/nar-p） —— */
+.cp.nar {
+  background: var(--panel-bg);
+  padding: 8px 12px;
+  margin: 6px 0 10px 0;
+  border-left: 3px solid var(--violet);
+  box-shadow: inset 0 1px 0 var(--panel-gloss-1);
+}
+.cp.nar .nar-p {
+  color: var(--text-2);
+  line-height: 1.6;
+  margin: 4px 0;
+  letter-spacing: 0.2px;
+}
+
+/* —— 工具类 —— */
+.no-italic { font-style: normal !important; }
+
+/* 间距微调 */
+.cp + .cp { margin-top: 14px; }
+.cp .ph + .sh { margin-top: -2px; }
+
+/* 小屏优化 */
+@media (max-width: 520px) {
+  .cp { padding: 12px 12px; }
+  .csf, .cse { padding: 8px 10px; }
+  .cr { font-size: 0.92rem; }
+  .cp p, .cp li { font-size: 0.96rem; }
+}
+
+/* 降低动画模式 */
+@media (prefers-reduced-motion: reduce) {
+  .cp, .csf, .cse {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+</style>

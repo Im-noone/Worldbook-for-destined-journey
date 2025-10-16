@@ -1,14 +1,14 @@
-# WorldBook - 命定之诗与黄昏之歌
+# 请先查看具体的使用教程 → [使用教程](./docs/DOC.md)
 
-**这是本仓库的开发分支**
+## WorldBook - 命定之诗与黄昏之歌
+
+## 更新日志
+
+### 请查看 [提交记录](https://github.com/Hilothea/Worldbook-for-destined-journey/commits/main/)
 
 ## 概述
 
 角色卡**命定之诗与黄昏之歌**的世界书部分
-
-## 文档
-
-点击 [此处](./DOC.md) 查看具体详情信息。
 
 ## 贡献者
 

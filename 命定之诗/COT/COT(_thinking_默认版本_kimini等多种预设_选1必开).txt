@@ -3,7 +3,7 @@
 [You must do a think and output each point a line in Chinese within <thinking> tags at first of your reply]
 <thinking>
 
-[共计10条,每一条都要思考!以1,…2,…3,…4,…5,…6,…7,…8,…9,…10,… 这种格式分点分行完整思考,11个序号不得忽略任何一个!]
+[共计11条,每一条都要思考!以1,…2,…3,…4,…5,…6,…7,…8,…9,…10,…11,…这种格式分点分行完整思考,11个序号不得忽略任何一个!]
 1.Check information from core_system and <event_chain>
 2.参照<审美叙事原则>，如何输出正文?
 3.如何遵循<NPC平等原则>的要求进行叙事？
@@ -36,6 +36,11 @@
 10.规则检查:
  - 经验值(EXP)和FP(命运点数)获取遵守<经验值获取><命运点数规则>。
  - 生命值(hp)/法力值(mp)/体力值(sp)在生活和战斗中会需要变化和更新,需要遵守<角色状态>。
+11.变量更新:
+ - 默认过去回应的变量已完成更新,除非{{user}}要求否则不处理过去已经回应和更新的变量更新
+ - 参照<variable_system>简述本次回应需更新的变量
+  - 你需要在变量更新时遵循<变量更新额外规则>
+ - 你需要在正文的末尾输出<UpdateVariable>进行变量更新
 
 </thinking>
 </thinking_format>
