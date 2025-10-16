@@ -2,9 +2,16 @@
 
 ## WorldBook - 命定之诗与黄昏之歌
 
+## TODO
+
+- [x] 修正 MVU 变量结构
+- [ ] 优化 MVU 变量相关的提示词
+- [ ] 战斗轮功能完善
+- [ ] ...（待添加）
+
 ## 更新日志
 
-### 请查看 [提交记录](https://github.com/Hilothea/Worldbook-for-destined-journey/commits/main/)
+### 请查看 [提交记录](https://github.com/Hilothea/Worldbook-for-destined-journey/commits/dev3.0/)
 
 ## 概述
 
