@@ -17,7 +17,10 @@
   集群: 先依<npc_generation_protocol>生成“模板个体”→聚合单位:
     名称=[模板]集群; 总HP/MP/SP=单体×数量; 五维=单体; 击杀阈值=模板HP;
     参战列表仅留“集群”。
-  部队: 参考<army_number_represent_protocol>与<army_info_template_protocol>生成合适的个体模板后生成集群
+  部队: 视为一个集群
+    名称=[部队个体模板]集群; 总HP/MP/SP=单体×数量; 五维=单体; 击杀阈值=模板HP;
+    参战列表仅留“部队”。
+    部队个体模板参考<army_number_represent_protocol>与<army_info_template_protocol>
 
 3) 同步属性与加持:
   依<npc_generation_protocol>确认各单位当前 HP/MP/SP、力/敏/体/智/精 与持有的 要素/权能/法则;
@@ -77,6 +80,7 @@
   若一方全灭或逃跑(仅敌人)→结算; 否则进入下个单位;
   非死斗的士气/逃跑检定: 资源阈值= 普40%/精20%/Boss10%;
   触发时从池中顺序取出下一个未使用的数值作为士气检定骰(r3); r3<5 敌逃跑; r3>13 敌入【美德】(效果二选一: 其下一次攻击必定暴击/下一次承受伤害全部减半)。
+  集群和部队进行人数检查，人数清零则为被歼灭
   如果为部队作战，士气清零视为被击溃，将部队HP清理并移除。且会影响其他部队(友方下降，敌方上升)
 
 # --- 阶段二: 格式化输出 (保持 html 不变) ---
@@ -90,13 +94,13 @@
     <p>力:X 敏:X 体:X 智:X 精:X</p>
   </div>
   <div class="csf">
-    <p class="cn">[队友/召唤物/魔宠]</p>
+    <p class="cn">[队友 / 召唤物 / 魔宠 / 部队名称 (xN)]</p>
     <p class="cr">HP: XXX/XXX | MP: XXX/XXX | SP: XXX/XXX</p>
     <p>力:X 敏:X 体:X 智:X 精:X</p>
   </div>
   <!-- 可重复友方块 -->
   <div class="cse">
-    <p class="cn">[敌人名 / 集群名称 (xN)]</p>
+    <p class="cn">[敌人名 / 集群名称 (xN) / 部队名称 (xN)]</p>
     <p class="cr">HP: XXX/XXX | MP: XXX/XXX | SP: XXX/XXX</p>
     <p>力:X 敏:X 体:X 智:X 精:X</p>
   </div>
